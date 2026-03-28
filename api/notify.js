@@ -29,7 +29,7 @@ module.exports = async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Key ${API_KEY}`   // ✅ v2 key format
+        'Authorization': `Key ${API_KEY}`
       },
       body: JSON.stringify({
         app_id: APP_ID,
