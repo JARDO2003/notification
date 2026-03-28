@@ -138,13 +138,6 @@
 
   <div class="card">
     <div class="field">
-      <label>Player ID du destinataire</label>
-      <textarea id="player-id" placeholder="Collez ici le Player ID copié depuis la page Récepteur…"></textarea>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="field">
       <label>Titre</label>
       <input type="text" id="title" value="🔔 Nouvelle notification" placeholder="Titre…"/>
     </div>
@@ -165,16 +158,10 @@
 
 </div>
 <script>
-  // ← Remplacez par vos clés OneSignal
-  const APP_ID   = "a096c3b3-b48a-49e7-9796-0f23bdab056c";
-  const API_KEY  = "VOTRE_REST_API_KEY_ONESIGNAL"; // OneSignal Dashboard → Settings → Keys & IDs
-
   async function send() {
-    const playerId = document.getElementById('player-id').value.trim();
-    const title    = document.getElementById('title').value.trim();
-    const body     = document.getElementById('body').value.trim();
+    const title = document.getElementById('title').value.trim();
+    const body  = document.getElementById('body').value.trim();
 
-    if (!playerId) return show('error', '⚠ Collez le Player ID du destinataire.');
     if (!title || !body) return show('error', '⚠ Le titre et le message sont requis.');
 
     const btn     = document.getElementById('btn-send');
@@ -187,27 +174,18 @@
     document.getElementById('result').className = 'result';
 
     try {
-      const res = await fetch('https://onesignal.com/api/v1/notifications', {
+      const res = await fetch('/api/notify', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${API_KEY}`
-        },
-        body: JSON.stringify({
-          app_id: APP_ID,
-          include_player_ids: [playerId],
-          headings: { en: title, fr: title },
-          contents: { en: body, fr: body }
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, body })
       });
 
       const json = await res.json();
 
-      if (res.ok && json.id) {
-        show('success', `✓ Notification envoyée ! (id: ${json.id})`);
+      if (json.success) {
+        show('success', `✓ Notification envoyée à ${json.recipients ?? 'tous'} abonné(s) !`);
       } else {
-        const err = json.errors ? json.errors.join(', ') : JSON.stringify(json);
-        show('error', `✗ Erreur OneSignal : ${err}`);
+        show('error', `✗ Erreur : ${JSON.stringify(json.error)}`);
       }
     } catch (err) {
       show('error', `✗ Erreur réseau : ${err.message}`);
