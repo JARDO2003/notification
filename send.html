@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Envoyer Notification</title>
+</head>
+<body>
+
+<h2>Envoyer une notification</h2>
+
+<input type="text" id="title" placeholder="Titre"><br><br>
+<input type="text" id="body" placeholder="Message"><br><br>
+<input type="text" id="tokenInput" placeholder="Token utilisateur"><br><br>
+
+<button onclick="sendNotification()">Envoyer</button>
+
+<script>
+async function sendNotification() {
+  const title = document.getElementById("title").value;
+  const body = document.getElementById("body").value;
+  const token = document.getElementById("tokenInput").value;
+
+  await fetch("https://fcm.googleapis.com/fcm/send", {
+    method: "POST",
+    headers: {
+      "Authorization": "key=BLrbso554YWcAd7-QPbzRFMUpJ9obsdJitRiFtzr-VU4GArr8ariq1l9klHxFUjSzASpkoelaTDAzcvI7UIWLZ8",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      to: token,
+      notification: {
+        title: title,
+        body: body
+      }
+    })
+  });
+
+  alert("Notification envoyée !");
+}
+</script>
+
+</body>
+</html>s
