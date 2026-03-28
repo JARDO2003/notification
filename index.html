@@ -7,615 +7,257 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #080c10;
-    --surface: #0e1318;
-    --surface2: #151c24;
-    --border: #1e2d3d;
-    --accent: #00e5ff;
-    --accent2: #7c4dff;
-    --green: #00e676;
-    --red: #ff1744;
-    --yellow: #ffd740;
-    --text: #e8f4f8;
-    --muted: #5a7a8a;
-    --glow: rgba(0, 229, 255, 0.15);
+    --bg: #080c10; --surface: #0e1318; --surface2: #151c24;
+    --border: #1e2d3d; --accent: #00e5ff; --accent2: #7c4dff;
+    --green: #00e676; --red: #ff1744; --yellow: #ffd740;
+    --text: #e8f4f8; --muted: #5a7a8a;
   }
+  body { font-family:'DM Mono',monospace; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; overflow-x:hidden; }
+  body::before { content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(0,229,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.03) 1px,transparent 1px); background-size:40px 40px; pointer-events:none; z-index:0; }
+  body::after { content:''; position:fixed; top:-200px; right:-200px; width:600px; height:600px; background:radial-gradient(circle,rgba(124,77,255,0.12),transparent 70%); pointer-events:none; z-index:0; }
 
-  body {
-    font-family: 'DM Mono', monospace;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow-x: hidden;
-  }
+  header { position:relative; z-index:10; display:flex; align-items:center; justify-content:space-between; padding:20px 32px; border-bottom:1px solid var(--border); background:rgba(8,12,16,0.9); backdrop-filter:blur(12px); }
+  .logo { display:flex; align-items:center; gap:12px; font-family:'Syne',sans-serif; font-weight:800; font-size:1.1rem; letter-spacing:0.05em; color:var(--accent); }
+  .logo-dot { width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 12px var(--accent); animation:pulse 1.8s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:0.7} }
+  .nav-link { font-size:0.78rem; color:var(--muted); text-decoration:none; letter-spacing:0.1em; transition:color 0.2s; }
+  .nav-link:hover,.nav-link.active { color:var(--accent); }
 
-  /* Grid Background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
+  main { position:relative; z-index:10; flex:1; display:grid; grid-template-columns:360px 1fr; gap:24px; padding:32px; max-width:1200px; margin:0 auto; width:100%; }
 
-  /* Blob de lumière */
-  body::after {
-    content: '';
-    position: fixed;
-    top: -200px; right: -200px;
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(124,77,255,0.12), transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
+  .panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .panel-header { padding:16px 20px; border-bottom:1px solid var(--border); font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:0.15em; color:var(--muted); text-transform:uppercase; display:flex; align-items:center; gap:8px; }
+  .dot { width:6px; height:6px; border-radius:50%; background:var(--muted); }
+  .dot.live { background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse 1.4s ease-in-out infinite; }
+  .panel-body { padding:20px; }
 
-  header {
-    position: relative; z-index: 10;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 32px;
-    border-bottom: 1px solid var(--border);
-    background: rgba(8,12,16,0.9);
-    backdrop-filter: blur(12px);
-  }
+  .user-card { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:14px; }
+  .field-label { font-size:0.68rem; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .field-input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:9px 12px; color:var(--text); font-family:'DM Mono',monospace; font-size:0.8rem; outline:none; transition:border-color 0.2s; }
+  .field-input:focus { border-color:var(--accent); }
+  .field-input::placeholder { color:var(--muted); opacity:0.5; }
 
-  .logo {
-    display: flex; align-items: center; gap: 12px;
-    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem;
-    letter-spacing: 0.05em; color: var(--accent);
-  }
+  .status-card { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:14px; }
+  .srow { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:0.74rem; }
+  .srow:last-child { margin-bottom:0; }
+  .sl { color:var(--muted); }
+  .sv { font-weight:500; }
+  .sv.ok { color:var(--green); } .sv.pending { color:var(--yellow); } .sv.error { color:var(--red); }
 
-  .logo-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%; background: var(--accent);
-    box-shadow: 0 0 12px var(--accent), 0 0 24px var(--accent);
-    animation: pulse 1.8s ease-in-out infinite;
-  }
+  .reg-success { background:rgba(0,230,118,0.08); border:1px solid rgba(0,230,118,0.25); border-radius:8px; padding:12px 14px; margin-bottom:14px; font-size:0.72rem; color:var(--green); display:none; }
+  .reg-success strong { display:block; font-family:'Syne',sans-serif; margin-bottom:2px; }
 
-  @keyframes pulse {
-    0%,100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.4); opacity: 0.7; }
-  }
+  .btn-primary { width:100%; padding:12px; background:linear-gradient(135deg,var(--accent2),var(--accent)); border:none; border-radius:8px; color:#fff; font-family:'Syne',sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.1em; cursor:pointer; transition:all 0.25s; text-transform:uppercase; }
+  .btn-primary:hover:not(:disabled) { opacity:0.85; transform:translateY(-1px); }
+  .btn-primary:disabled { opacity:0.4; cursor:not-allowed; }
 
-  .nav-link {
-    font-size: 0.78rem; color: var(--muted);
-    text-decoration: none; letter-spacing: 0.1em;
-    transition: color 0.2s;
-  }
-  .nav-link:hover { color: var(--accent); }
-  .nav-link.active { color: var(--accent); }
+  .feed-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+  .feed-toolbar { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; border-bottom:1px solid var(--border); }
+  .feed-count { font-size:0.72rem; color:var(--muted); }
+  .feed-count span { color:var(--accent); font-weight:700; }
+  .clear-btn { background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:6px 12px; font-family:'DM Mono',monospace; font-size:0.7rem; cursor:pointer; transition:all 0.2s; }
+  .clear-btn:hover { border-color:var(--red); color:var(--red); }
 
-  main {
-    position: relative; z-index: 10;
-    flex: 1;
-    display: grid;
-    grid-template-columns: 360px 1fr;
-    gap: 24px;
-    padding: 32px;
-    max-width: 1200px; margin: 0 auto; width: 100%;
-  }
+  #notif-feed { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px; min-height:300px; }
+  #notif-feed::-webkit-scrollbar { width:4px; }
+  #notif-feed::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
 
-  /* === PANNEAU GAUCHE === */
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-  }
+  .empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
+  .empty-state .icon { font-size:2.5rem; margin-bottom:16px; opacity:0.4; }
+  .empty-state p { font-size:0.8rem; line-height:1.7; }
 
-  .panel-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    font-family: 'Syne', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    color: var(--muted);
-    text-transform: uppercase;
-    display: flex; align-items: center; gap: 8px;
-  }
+  .notif-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:16px; animation:slideIn 0.35s cubic-bezier(0.22,1,0.36,1); position:relative; overflow:hidden; }
+  .notif-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(to bottom,var(--accent),var(--accent2)); }
+  .notif-card.fg::before { background:linear-gradient(to bottom,var(--green),var(--accent)); }
+  @keyframes slideIn { from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)} }
+  .notif-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .nbadge { font-size:0.62rem; padding:3px 8px; border-radius:20px; font-weight:600; }
+  .nbadge.fg { background:rgba(0,230,118,0.15); color:var(--green); }
+  .nbadge.bg { background:rgba(0,229,255,0.1); color:var(--accent); }
+  .ntime { font-size:0.65rem; color:var(--muted); }
+  .ntitle { font-family:'Syne',sans-serif; font-weight:700; font-size:0.9rem; margin-bottom:5px; }
+  .nbody { font-size:0.78rem; color:var(--muted); line-height:1.5; }
 
-  .panel-header .indicator {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--muted);
-  }
-  .panel-header .indicator.live {
-    background: var(--green);
-    box-shadow: 0 0 8px var(--green);
-    animation: pulse 1.4s ease-in-out infinite;
-  }
-
-  .panel-body { padding: 20px; }
-
-  /* STATUS */
-  .status-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-
-  .status-row {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 10px;
-    font-size: 0.75rem;
-  }
-  .status-row:last-child { margin-bottom: 0; }
-  .status-label { color: var(--muted); }
-  .status-value { font-weight: 500; }
-  .status-value.ok { color: var(--green); }
-  .status-value.pending { color: var(--yellow); }
-  .status-value.error { color: var(--red); }
-
-  /* TOKEN BOX */
-  .token-box {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-    margin-bottom: 16px;
-  }
-
-  .token-label {
-    font-size: 0.68rem; color: var(--muted);
-    letter-spacing: 0.12em; text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-
-  .token-value {
-    font-size: 0.65rem; color: var(--accent);
-    word-break: break-all; line-height: 1.6;
-    opacity: 0.8;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-  .token-value:hover { opacity: 1; }
-
-  .copy-btn {
-    width: 100%; margin-top: 10px;
-    padding: 9px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.1em;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .copy-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--glow);
-  }
-  .copy-btn.copied { border-color: var(--green); color: var(--green); }
-
-  .btn-primary {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, var(--accent2), var(--accent));
-    border: none; border-radius: 8px;
-    color: #fff;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
-    cursor: pointer;
-    transition: all 0.25s;
-    text-transform: uppercase;
-  }
-  .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
-  .btn-primary:disabled {
-    opacity: 0.4; cursor: not-allowed; transform: none;
-  }
-
-  /* === PANNEAU DROIT : FLUX === */
-  .feed-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    display: flex; flex-direction: column;
-  }
-
-  .feed-toolbar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 20px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .feed-count {
-    font-size: 0.72rem; color: var(--muted);
-  }
-  .feed-count span { color: var(--accent); font-weight: 700; }
-
-  .clear-btn {
-    background: transparent; border: 1px solid var(--border);
-    color: var(--muted); border-radius: 6px;
-    padding: 6px 12px; font-family: 'DM Mono', monospace;
-    font-size: 0.7rem; cursor: pointer; transition: all 0.2s;
-  }
-  .clear-btn:hover { border-color: var(--red); color: var(--red); }
-
-  #notif-feed {
-    flex: 1; overflow-y: auto; padding: 20px;
-    display: flex; flex-direction: column; gap: 12px;
-  }
-
-  /* Scrollbar */
-  #notif-feed::-webkit-scrollbar { width: 4px; }
-  #notif-feed::-webkit-scrollbar-track { background: transparent; }
-  #notif-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .empty-state {
-    text-align: center; padding: 60px 20px;
-    color: var(--muted);
-  }
-  .empty-state .icon { font-size: 2.5rem; margin-bottom: 16px; opacity: 0.4; }
-  .empty-state p { font-size: 0.8rem; line-height: 1.6; }
-
-  /* Notification Card */
-  .notif-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-    animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .notif-card::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: linear-gradient(to bottom, var(--accent), var(--accent2));
-  }
-
-  .notif-card.foreground::before {
-    background: linear-gradient(to bottom, var(--green), var(--accent));
-  }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-
-  .notif-meta {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 8px;
-  }
-
-  .notif-badge {
-    font-size: 0.62rem; padding: 3px 8px;
-    border-radius: 20px; font-weight: 600;
-    letter-spacing: 0.08em;
-  }
-  .badge-fg { background: rgba(0,230,118,0.15); color: var(--green); }
-  .badge-bg { background: rgba(0,229,255,0.1); color: var(--accent); }
-
-  .notif-time {
-    font-size: 0.65rem; color: var(--muted);
-  }
-
-  .notif-title {
-    font-family: 'Syne', sans-serif; font-weight: 700;
-    font-size: 0.9rem; margin-bottom: 6px;
-    color: var(--text);
-  }
-
-  .notif-body {
-    font-size: 0.78rem; color: var(--muted);
-    line-height: 1.5;
-  }
-
-  .notif-data {
-    margin-top: 10px; padding: 8px 10px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 0.65rem; color: var(--accent2);
-    word-break: break-all;
-  }
-
-  /* TOAST */
-  #toast {
-    position: fixed; bottom: 24px; right: 24px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 20px;
-    font-size: 0.78rem;
-    z-index: 1000;
-    transform: translateY(80px); opacity: 0;
-    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-    max-width: 320px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  #toast.show { transform: translateY(0); opacity: 1; }
-  #toast.success { border-color: var(--green); color: var(--green); }
-  #toast.error { border-color: var(--red); color: var(--red); }
-  #toast.info { border-color: var(--accent); color: var(--accent); }
+  #toast { position:fixed; bottom:24px; right:24px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px 20px; font-size:0.78rem; z-index:1000; transform:translateY(80px); opacity:0; transition:all 0.35s cubic-bezier(0.22,1,0.36,1); max-width:320px; display:flex; align-items:center; gap:10px; }
+  #toast.show { transform:translateY(0); opacity:1; }
+  #toast.success { border-color:var(--green); color:var(--green); }
+  #toast.error { border-color:var(--red); color:var(--red); }
+  #toast.info { border-color:var(--accent); color:var(--accent); }
 </style>
 </head>
 <body>
-
 <header>
-  <div class="logo">
-    <div class="logo-dot"></div>
-    FCM RECEIVER
-  </div>
-  <div style="display:flex;gap:24px;align-items:center">
+  <div class="logo"><div class="logo-dot"></div>FCM RECEIVER</div>
+  <div style="display:flex;gap:24px">
     <a href="send.html" class="nav-link">→ ENVOYER</a>
     <a href="receive.html" class="nav-link active">RECEVOIR</a>
   </div>
 </header>
 
 <main>
-  <!-- Panneau gauche : statut & token -->
   <div>
     <div class="panel" style="margin-bottom:16px">
-      <div class="panel-header">
-        <div class="indicator" id="live-dot"></div>
-        STATUT DU CLIENT
-      </div>
+      <div class="panel-header"><div class="dot" id="live-dot"></div>INSCRIPTION</div>
       <div class="panel-body">
+
+        <div class="user-card">
+          <div class="field-label">VOTRE NOM / APPAREIL</div>
+          <input type="text" class="field-input" id="user-name" placeholder="ex: Mon téléphone, Bureau…" maxlength="40"/>
+        </div>
+
+        <div class="reg-success" id="reg-success">
+          <strong>✓ ENREGISTRÉ AVEC SUCCÈS</strong>
+          <span id="reg-name-txt"></span>
+        </div>
+
         <div class="status-card">
-          <div class="status-row">
-            <span class="status-label">PERMISSION</span>
-            <span class="status-value" id="st-perm">—</span>
-          </div>
-          <div class="status-row">
-            <span class="status-label">SERVICE WORKER</span>
-            <span class="status-value" id="st-sw">—</span>
-          </div>
-          <div class="status-row">
-            <span class="status-label">FCM</span>
-            <span class="status-value" id="st-fcm">—</span>
-          </div>
-          <div class="status-row">
-            <span class="status-label">MESSAGES REÇUS</span>
-            <span class="status-value" id="st-count" style="color:var(--accent)">0</span>
-          </div>
+          <div class="srow"><span class="sl">PERMISSION</span><span class="sv" id="st-perm">—</span></div>
+          <div class="srow"><span class="sl">SERVICE WORKER</span><span class="sv" id="st-sw">—</span></div>
+          <div class="srow"><span class="sl">FCM</span><span class="sv" id="st-fcm">—</span></div>
+          <div class="srow"><span class="sl">FIREBASE DB</span><span class="sv" id="st-db">—</span></div>
+          <div class="srow"><span class="sl">MESSAGES REÇUS</span><span class="sv" id="st-count" style="color:var(--accent)">0</span></div>
         </div>
 
-        <div class="token-box" id="token-box" style="display:none">
-          <div class="token-label">FCM TOKEN</div>
-          <div class="token-value" id="token-display" title="Cliquer pour copier"></div>
-          <button class="copy-btn" id="copy-btn" onclick="copyToken()">COPIER LE TOKEN</button>
-        </div>
-
-        <button class="btn-primary" id="reg-btn" onclick="requestPermission()">
+        <button class="btn-primary" id="reg-btn" onclick="register()">
           ACTIVER LES NOTIFICATIONS
         </button>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-header">
-        <div class="indicator"></div>
-        DERNIÈRE NOTIFICATION
-      </div>
+      <div class="panel-header"><div class="dot"></div>DERNIÈRE NOTIFICATION</div>
       <div class="panel-body">
-        <div id="last-notif" style="font-size:0.75rem;color:var(--muted);text-align:center;padding:20px 0">
-          En attente…
-        </div>
+        <div id="last-notif" style="font-size:0.75rem;color:var(--muted);text-align:center;padding:20px 0">En attente…</div>
       </div>
     </div>
   </div>
 
-  <!-- Flux notifications -->
   <div class="feed-panel">
-    <div class="panel-header" style="border-radius:0">
-      <div class="indicator live" id="feed-live"></div>
-      FLUX EN TEMPS RÉEL
-    </div>
+    <div class="panel-header" style="border-radius:0"><div class="dot live"></div>FLUX EN TEMPS RÉEL</div>
     <div class="feed-toolbar">
-      <div class="feed-count">Total reçu : <span id="feed-num">0</span></div>
+      <div class="feed-count">Reçus : <span id="feed-num">0</span></div>
       <button class="clear-btn" onclick="clearFeed()">EFFACER</button>
     </div>
     <div id="notif-feed">
       <div class="empty-state">
         <div class="icon">📡</div>
-        <p>En attente de notifications…<br/>Activez les notifications ci-contre<br/>puis envoyez un message depuis send.html</p>
+        <p>Entrez votre nom et activez les notifications.<br/>Vous apparaîtrez automatiquement<br/>dans la liste des destinataires sur send.html.</p>
       </div>
     </div>
   </div>
 </main>
-
 <div id="toast"></div>
 
-<!-- Firebase SDK -->
 <script type="module">
 import { initializeApp }    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getMessaging, getToken, onMessage }
-                             from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
+import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
+import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCPGgtXoDUycykLaTSee0S0yY0tkeJpqKI",
-  authDomain: "data-com-a94a8.firebaseapp.com",
-  databaseURL: "https://data-com-a94a8-default-rtdb.firebaseio.com",
-  projectId: "data-com-a94a8",
-  storageBucket: "data-com-a94a8.firebasestorage.app",
-  messagingSenderId: "276904640935",
-  appId: "1:276904640935:web:9cd805aeba6c34c767f682",
-  measurementId: "G-FYQCWY5G4S"
+const cfg = {
+  apiKey:"AIzaSyCPGgtXoDUycykLaTSee0S0yY0tkeJpqKI",
+  authDomain:"data-com-a94a8.firebaseapp.com",
+  databaseURL:"https://data-com-a94a8-default-rtdb.firebaseio.com",
+  projectId:"data-com-a94a8",
+  storageBucket:"data-com-a94a8.firebasestorage.app",
+  messagingSenderId:"276904640935",
+  appId:"1:276904640935:web:9cd805aeba6c34c767f682",
 };
+const VAPID = "BLrbso554YWcAd7-QPbzRFMUpJ9obsdJitRiFtzr-VU4GArr8ariq1l9klHxFUjSzASpkoelaTDAzcvI7UIWLZ8";
 
-const VAPID_KEY = "BLrbso554YWcAd7-QPbzRFMUpJ9obsdJitRiFtzr-VU4GArr8ariq1l9klHxFUjSzASpkoelaTDAzcvI7UIWLZ8";
+const app  = initializeApp(cfg);
+const msg  = getMessaging(app);
+const db   = getDatabase(app);
+let count  = 0;
 
-const app       = initializeApp(firebaseConfig);
-const messaging = getMessaging(app);
-
-let msgCount = 0;
-let currentToken = null;
-
-// ── Utilitaires UI ───────────────────────────────────────────────────────────
-function setStatus(id, text, cls) {
-  const el = document.getElementById(id);
-  el.textContent = text;
-  el.className = 'status-value ' + (cls || '');
-}
-
-function showToast(msg, type = 'info') {
-  const t = document.getElementById('toast');
-  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
-  t.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
-  t.className = `show ${type}`;
-  setTimeout(() => t.className = '', 3500);
-}
-
-function formatTime(date) {
-  return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-}
-
-window.copyToken = function () {
-  if (!currentToken) return;
-  navigator.clipboard.writeText(currentToken).then(() => {
-    const btn = document.getElementById('copy-btn');
-    btn.textContent = '✓ COPIÉ !';
-    btn.classList.add('copied');
-    showToast('Token copié dans le presse-papiers', 'success');
-    setTimeout(() => { btn.textContent = 'COPIER LE TOKEN'; btn.classList.remove('copied'); }, 2000);
-  });
+const ss = (id,t,c) => { const e=document.getElementById(id); e.textContent=t; e.className='sv '+(c||''); };
+const toast = (m,t='info') => {
+  const el=document.getElementById('toast');
+  el.innerHTML=`<span>${{success:'✅',error:'❌',info:'ℹ️'}[t]}</span><span>${m}</span>`;
+  el.className=`show ${t}`; setTimeout(()=>el.className='',3500);
 };
+const ftime = d => d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 
-window.clearFeed = function () {
-  document.getElementById('notif-feed').innerHTML =
-    '<div class="empty-state"><div class="icon">📡</div><p>Flux effacé — en attente…</p></div>';
-  msgCount = 0;
-  document.getElementById('st-count').textContent = '0';
-  document.getElementById('feed-num').textContent = '0';
-};
-
-function addNotifCard(payload, type = 'foreground') {
+function addCard(payload, type='fg') {
   const feed = document.getElementById('notif-feed');
-
-  // Supprimer l'état vide
-  const empty = feed.querySelector('.empty-state');
-  if (empty) empty.remove();
-
-  msgCount++;
-  document.getElementById('st-count').textContent = msgCount;
-  document.getElementById('feed-num').textContent = msgCount;
-
-  const { title, body } = payload.notification || { title: 'Notification', body: '' };
-  const data = payload.data || {};
+  feed.querySelector('.empty-state')?.remove();
+  count++;
+  document.getElementById('st-count').textContent = count;
+  document.getElementById('feed-num').textContent  = count;
+  const {title='Notification', body=''} = payload.notification || {};
   const now = new Date();
-
   const card = document.createElement('div');
   card.className = `notif-card ${type}`;
   card.innerHTML = `
     <div class="notif-meta">
-      <span class="notif-badge ${type === 'foreground' ? 'badge-fg' : 'badge-bg'}">
-        ${type === 'foreground' ? 'PREMIER PLAN' : 'ARRIÈRE-PLAN'}
-      </span>
-      <span class="notif-time">${formatTime(now)}</span>
+      <span class="nbadge ${type}">${type==='fg'?'PREMIER PLAN':'ARRIÈRE-PLAN'}</span>
+      <span class="ntime">${ftime(now)}</span>
     </div>
-    <div class="notif-title">${title}</div>
-    <div class="notif-body">${body}</div>
-    ${Object.keys(data).length ? `<div class="notif-data">DATA: ${JSON.stringify(data)}</div>` : ''}
-  `;
-
+    <div class="ntitle">${title}</div>
+    <div class="nbody">${body}</div>`;
   feed.insertBefore(card, feed.firstChild);
-
-  // Mettre à jour "dernière notification"
-  document.getElementById('last-notif').innerHTML = `
-    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;margin-bottom:6px;color:var(--text)">${title}</div>
-    <div style="font-size:0.75rem;color:var(--muted)">${body}</div>
-    <div style="font-size:0.65rem;color:var(--muted);margin-top:6px">${formatTime(now)}</div>
-  `;
+  document.getElementById('last-notif').innerHTML =
+    `<div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;margin-bottom:6px;color:var(--text)">${title}</div>
+     <div style="font-size:.75rem;color:var(--muted)">${body}</div>
+     <div style="font-size:.65rem;color:var(--muted);margin-top:6px">${ftime(now)}</div>`;
 }
 
-// ── Service Worker ──────────────────────────────────────────────────────────
-async function registerSW() {
-  if (!('serviceWorker' in navigator)) {
-    setStatus('st-sw', 'NON SUPPORTÉ', 'error');
-    return false;
-  }
-  try {
-    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-    console.log('SW enregistré:', reg.scope);
-    setStatus('st-sw', 'ACTIF', 'ok');
-    return true;
-  } catch (e) {
-    console.error('SW erreur:', e);
-    setStatus('st-sw', 'ERREUR', 'error');
-    return false;
-  }
-}
+window.clearFeed = () => {
+  document.getElementById('notif-feed').innerHTML = '<div class="empty-state"><div class="icon">📡</div><p>Flux effacé…</p></div>';
+  count=0; document.getElementById('st-count').textContent='0'; document.getElementById('feed-num').textContent='0';
+};
 
-// ── Permission & Token FCM ───────────────────────────────────────────────────
-window.requestPermission = async function () {
-  const btn = document.getElementById('reg-btn');
-  btn.disabled = true;
-  btn.textContent = 'INITIALISATION…';
+window.register = async () => {
+  const btn  = document.getElementById('reg-btn');
+  const name = document.getElementById('user-name').value.trim() || ('Appareil-'+Math.random().toString(36).slice(2,6).toUpperCase());
+  btn.disabled=true; btn.textContent='INITIALISATION…';
 
-  // 1. SW
-  const swOk = await registerSW();
-  if (!swOk) { btn.disabled = false; btn.textContent = 'RÉESSAYER'; return; }
+  // SW
+  if(!('serviceWorker' in navigator)){ss('st-sw','NON SUPPORTÉ','error');btn.disabled=false;btn.textContent='RÉESSAYER';return;}
+  try { await navigator.serviceWorker.register('/firebase-messaging-sw.js'); ss('st-sw','ACTIF','ok'); }
+  catch(e){ ss('st-sw','ERREUR','error'); btn.disabled=false; btn.textContent='RÉESSAYER'; return; }
 
-  // 2. Permission
+  // Permission
   const perm = await Notification.requestPermission();
-  if (perm !== 'granted') {
-    setStatus('st-perm', 'REFUSÉE', 'error');
-    showToast('Permission refusée — activez les notifications dans votre navigateur', 'error');
-    btn.disabled = false; btn.textContent = 'ACTIVER LES NOTIFICATIONS';
-    return;
-  }
-  setStatus('st-perm', 'ACCORDÉE', 'ok');
+  if(perm!=='granted'){ss('st-perm','REFUSÉE','error');toast('Permission refusée','error');btn.disabled=false;btn.textContent='ACTIVER LES NOTIFICATIONS';return;}
+  ss('st-perm','ACCORDÉE','ok');
 
-  // 3. Token FCM
+  // Token
   try {
-    setStatus('st-fcm', 'CONNEXION…', 'pending');
-    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-    if (token) {
-      currentToken = token;
-      setStatus('st-fcm', 'CONNECTÉ', 'ok');
-      document.getElementById('live-dot').classList.add('live');
+    ss('st-fcm','CONNEXION…','pending');
+    const token = await getToken(msg, {vapidKey:VAPID});
+    if(!token) throw new Error('Token vide');
+    ss('st-fcm','CONNECTÉ','ok');
+    document.getElementById('live-dot').classList.add('live');
 
-      document.getElementById('token-display').textContent = token;
-      document.getElementById('token-box').style.display = 'block';
+    // Sauvegarde DB
+    ss('st-db','SAUVEGARDE…','pending');
+    const key = token.slice(-24);
+    await set(ref(db, `fcm_tokens/${key}`), { token, name, ua:navigator.userAgent.slice(0,80), updatedAt:Date.now() });
+    ss('st-db','ENREGISTRÉ','ok');
 
-      btn.textContent = '✓ NOTIFICATIONS ACTIVES';
-      btn.style.background = 'linear-gradient(135deg, #00c853, #00e676)';
+    // UI
+    const rs = document.getElementById('reg-success');
+    rs.style.display='block';
+    document.getElementById('reg-name-txt').textContent = `Connecté en tant que : ${name}`;
+    btn.textContent='✓ NOTIFICATIONS ACTIVES';
+    btn.style.background='linear-gradient(135deg,#00c853,#00e676)';
+    toast(`"${name}" enregistré ! Visible dans send.html`,'success');
 
-      showToast('Notifications activées !', 'success');
+    // Écoute foreground
+    onMessage(msg, payload => { addCard(payload,'fg'); toast(payload.notification?.title||'Notification','success'); });
 
-      // Écoute foreground
-      onMessage(messaging, (payload) => {
-        console.log('[FG] Message reçu:', payload);
-        addNotifCard(payload, 'foreground');
-        showToast(payload.notification?.title || 'Nouvelle notification', 'success');
-      });
-
-    } else {
-      setStatus('st-fcm', 'TOKEN VIDE', 'error');
-      showToast('Impossible d\'obtenir le token FCM', 'error');
-      btn.disabled = false; btn.textContent = 'RÉESSAYER';
-    }
-  } catch (e) {
-    console.error('FCM erreur:', e);
-    setStatus('st-fcm', 'ERREUR', 'error');
-    showToast('Erreur FCM : ' + e.message, 'error');
-    btn.disabled = false; btn.textContent = 'RÉESSAYER';
+  } catch(e) {
+    ss('st-fcm','ERREUR','error');
+    toast('Erreur : '+e.message,'error');
+    btn.disabled=false; btn.textContent='RÉESSAYER';
   }
 };
 
-// ── Init ──────────────────────────────────────────────────────────────────
-setStatus('st-perm', Notification.permission === 'granted' ? 'ACCORDÉE' : 'EN ATTENTE', Notification.permission === 'granted' ? 'ok' : 'pending');
-setStatus('st-sw', 'serviceWorker' in navigator ? 'SUPPORTÉ' : 'NON SUPPORTÉ', 'serviceWorker' in navigator ? 'pending' : 'error');
-setStatus('st-fcm', 'NON INITIALISÉ', 'pending');
+ss('st-perm', Notification.permission==='granted'?'ACCORDÉE':'EN ATTENTE', Notification.permission==='granted'?'ok':'pending');
+ss('st-sw','serviceWorker' in navigator?'SUPPORTÉ':'NON SUPPORTÉ','pending');
+ss('st-fcm','NON INITIALISÉ','pending');
+ss('st-db','EN ATTENTE','pending');
 </script>
 </body>
 </html>
