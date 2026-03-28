@@ -1,325 +1,343 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>OneSignal — Récepteur</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FCM — Accueil</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
-      --bg: #0b0e14;
-      --surface: #131720;
-      --border: #1e2535;
-      --accent: #00e5ff;
-      --accent2: #7c3aed;
-      --text: #e2e8f0;
-      --muted: #64748b;
-      --success: #10b981;
-      --error: #ef4444;
-      --radius: 14px;
-    }
+  :root {
+    --bg: #080c10;
+    --surface: #0e1318;
+    --surface2: #151c24;
+    --border: #1e2d3d;
+    --accent-send: #ff6b35;
+    --accent-recv: #00e5ff;
+    --purple: #7c4dff;
+    --green: #00e676;
+    --text: #e8f4f8;
+    --muted: #5a7a8a;
+  }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Syne', sans-serif;
-      min-height: 100vh;
-      display: flex; flex-direction: column; align-items: center;
-      padding: 48px 20px;
-    }
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
 
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 40px 40px;
-      opacity: 0.35; pointer-events: none; z-index: 0;
-    }
+  /* Grid BG */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none; z-index: 0;
+  }
 
-    .container { position: relative; z-index: 1; width: 100%; max-width: 640px; }
+  /* Blobs */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none; z-index: 0;
+    animation: drift 10s ease-in-out infinite alternate;
+  }
+  .blob-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(124,77,255,0.15), transparent 70%);
+    top: -150px; left: -150px;
+  }
+  .blob-2 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,107,53,0.12), transparent 70%);
+    bottom: -100px; right: -100px;
+    animation-delay: -5s;
+  }
+  .blob-3 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(0,229,255,0.08), transparent 70%);
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+    animation-delay: -2.5s;
+  }
 
-    /* Header */
-    header { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
+  @keyframes drift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(30px, 20px) scale(1.05); }
+  }
 
-    .logo-ring {
-      width: 46px; height: 46px; border-radius: 50%;
-      border: 2px solid var(--accent);
-      display: grid; place-items: center;
-      box-shadow: 0 0 20px rgba(0,229,255,0.3);
-      animation: glow 2.5s ease-in-out infinite;
-    }
+  /* Container */
+  .container {
+    position: relative; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 48px;
+    padding: 40px 20px;
+    width: 100%; max-width: 800px;
+    animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1);
+  }
 
-    @keyframes glow {
-      0%,100% { box-shadow: 0 0 20px rgba(0,229,255,0.3); }
-      50%      { box-shadow: 0 0 36px rgba(0,229,255,0.6); }
-    }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
-    .logo-ring svg { width: 22px; height: 22px; fill: var(--accent); }
+  /* Header */
+  .header {
+    text-align: center;
+  }
 
-    header h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; }
-    header h1 span { color: var(--accent); }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(124,77,255,0.12);
+    border: 1px solid rgba(124,77,255,0.3);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 0.68rem; letter-spacing: 0.15em;
+    color: #b39dff; text-transform: uppercase;
+    margin-bottom: 20px;
+  }
 
-    .badge-live {
-      margin-left: auto;
-      font-family: 'Space Mono', monospace; font-size: 0.63rem;
-      color: var(--success); border: 1px solid var(--success);
-      padding: 4px 12px; border-radius: 20px; letter-spacing: 0.1em;
-      text-transform: uppercase; display: flex; align-items: center; gap: 6px;
-    }
+  .badge-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #b39dff;
+    box-shadow: 0 0 8px #b39dff;
+    animation: pulse 1.8s ease-in-out infinite;
+  }
 
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: blink 1.2s ease-in-out infinite; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.5; transform: scale(1.4); }
+  }
 
-    .btn-goto {
-      display: inline-flex; align-items: center; gap: 7px;
-      font-family: 'Space Mono', monospace; font-size: 0.65rem;
-      letter-spacing: 0.06em; text-decoration: none;
-      color: #f97316; border: 1px solid rgba(249,115,22,0.35);
-      background: rgba(249,115,22,0.07);
-      padding: 6px 14px; border-radius: 20px; transition: all 0.2s;
-    }
+  .title {
+    font-family: 'Syne', sans-serif; font-weight: 900;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
 
-    .btn-goto:hover { background: rgba(249,115,22,0.18); border-color: #f97316; transform: translateY(-1px); }
+  .title-line1 { color: var(--text); }
+  .title-line2 {
+    background: linear-gradient(90deg, var(--accent-send), var(--purple), var(--accent-recv));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 
-    /* Card */
-    .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 24px; margin-bottom: 18px;
-    }
+  .subtitle {
+    margin-top: 16px;
+    font-size: 0.82rem; color: var(--muted);
+    line-height: 1.7; max-width: 440px; margin-inline: auto;
+  }
 
-    .card-label {
-      font-family: 'Space Mono', monospace; font-size: 0.63rem;
-      letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 14px;
-    }
+  /* Cards */
+  .cards {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px; width: 100%;
+  }
 
-    /* Player ID */
-    .id-box {
-      background: #0d1117; border: 1px solid var(--border);
-      border-radius: 8px; padding: 14px 16px;
-      font-family: 'Space Mono', monospace; font-size: 0.72rem;
-      color: var(--accent); word-break: break-all; line-height: 1.6;
-      min-height: 52px;
-    }
+  .card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    text-decoration: none; color: inherit;
+    transition: transform 0.3s cubic-bezier(0.22,1,0.36,1),
+                border-color 0.3s, box-shadow 0.3s;
+    overflow: hidden;
+    display: flex; flex-direction: column; gap: 16px;
+  }
 
-    .placeholder { color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .card::before {
+    content: '';
+    position: absolute; inset: 0;
+    opacity: 0; transition: opacity 0.3s;
+    border-radius: 16px;
+  }
 
-    .spinner {
-      width: 13px; height: 13px;
-      border: 2px solid var(--border); border-top-color: var(--accent);
-      border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+  .card-send::before {
+    background: linear-gradient(135deg, rgba(255,107,53,0.07), transparent 60%);
+  }
+  .card-recv::before {
+    background: linear-gradient(135deg, rgba(0,229,255,0.07), transparent 60%);
+  }
 
-    .actions { display: flex; gap: 10px; margin-top: 12px; }
+  .card:hover { transform: translateY(-6px); }
+  .card-send:hover {
+    border-color: rgba(255,107,53,0.5);
+    box-shadow: 0 16px 40px rgba(255,107,53,0.15), 0 0 0 1px rgba(255,107,53,0.1);
+  }
+  .card-recv:hover {
+    border-color: rgba(0,229,255,0.4);
+    box-shadow: 0 16px 40px rgba(0,229,255,0.1), 0 0 0 1px rgba(0,229,255,0.08);
+  }
+  .card:hover::before { opacity: 1; }
 
-    .btn {
-      font-family: 'Space Mono', monospace; font-size: 0.72rem;
-      padding: 8px 16px; border-radius: 6px; border: none;
-      cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;
-    }
+  /* Card Icon */
+  .card-icon {
+    width: 52px; height: 52px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+  }
+  .card-send .card-icon {
+    background: rgba(255,107,53,0.12);
+    border: 1px solid rgba(255,107,53,0.25);
+  }
+  .card-recv .card-icon {
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.2);
+  }
 
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-accent { background: var(--accent); color: #000; font-weight: 700; }
-    .btn-accent:hover { background: #00c9e0; transform: translateY(-1px); }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+  .card-label {
+    font-size: 0.62rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .card-send .card-label { color: rgba(255,107,53,0.7); }
+  .card-recv .card-label { color: rgba(0,229,255,0.6); }
 
-    /* Status */
-    .status {
-      display: flex; align-items: center; gap: 10px;
-      border-radius: 8px; padding: 11px 14px; font-size: 0.8rem;
-      margin-top: 12px; border: 1px solid transparent; transition: all 0.3s;
-    }
-    .status.idle    { background: rgba(100,116,139,0.1); border-color: var(--border); color: var(--muted); }
-    .status.ok      { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.3); color: var(--success); }
-    .status.error   { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); color: var(--error); }
-    .status.loading { background: rgba(0,229,255,0.05); border-color: rgba(0,229,255,0.2); color: var(--accent); }
+  .card-title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 1.3rem; line-height: 1.2;
+  }
 
-    /* Feed */
-    .feed-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .feed-header h2 { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .card-desc {
+    font-size: 0.75rem; color: var(--muted);
+    line-height: 1.6; flex: 1;
+  }
 
-    .count { background: var(--accent2); color: #fff; font-size: 0.63rem; padding: 2px 8px; border-radius: 20px; font-family: 'Space Mono', monospace; }
+  /* CTA Button inside card */
+  .card-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 0.75rem; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: gap 0.2s, opacity 0.2s;
+    width: fit-content;
+  }
+  .card:hover .card-btn { gap: 12px; }
 
-    .btn-clear {
-      font-family: 'Space Mono', monospace; font-size: 0.63rem;
-      background: transparent; border: 1px solid var(--border); color: var(--muted);
-      padding: 4px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;
-    }
-    .btn-clear:hover { border-color: var(--error); color: var(--error); }
+  .card-send .card-btn {
+    background: linear-gradient(135deg, rgba(255,107,53,0.2), rgba(255,23,68,0.15));
+    border: 1px solid rgba(255,107,53,0.35);
+    color: var(--accent-send);
+  }
+  .card-recv .card-btn {
+    background: linear-gradient(135deg, rgba(0,229,255,0.12), rgba(124,77,255,0.1));
+    border: 1px solid rgba(0,229,255,0.25);
+    color: var(--accent-recv);
+  }
 
-    #feed { display: flex; flex-direction: column; gap: 10px; }
+  .arrow { transition: transform 0.2s; }
+  .card:hover .arrow { transform: translateX(3px); }
 
-    .empty {
-      text-align: center; padding: 40px 20px;
-      color: var(--muted); font-size: 0.83rem;
-      border: 1px dashed var(--border); border-radius: var(--radius);
-    }
+  /* Features row */
+  .features {
+    display: flex; gap: 28px; flex-wrap: wrap; justify-content: center;
+  }
 
-    .notif-item {
-      background: var(--surface); border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      border-radius: var(--radius); padding: 14px 16px;
-      animation: slide-in 0.3s cubic-bezier(0.16,1,0.3,1) both;
-    }
-    @keyframes slide-in { from { opacity:0; transform:translateX(-14px); } to { opacity:1; transform:translateX(0); } }
+  .feature {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.72rem; color: var(--muted);
+  }
+  .feature-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+  }
 
-    .notif-top { display: flex; justify-content: space-between; gap: 12px; }
-    .notif-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
-    .notif-body { font-size: 0.8rem; color: #94a3b8; line-height: 1.5; }
-    .notif-time { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); white-space: nowrap; }
-  </style>
+  /* Footer */
+  .footer {
+    font-size: 0.65rem; color: var(--muted);
+    letter-spacing: 0.08em;
+    opacity: 0.6;
+  }
+
+  @media (max-width: 560px) {
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>
 </head>
 <body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
 <div class="container">
 
-  <header>
-    <div class="logo-ring">
-      <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5S10.5 3.17 10.5 4v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">
+      <div class="badge-dot"></div>
+      Firebase Cloud Messaging
     </div>
-    <h1>One<span>Signal</span></h1>
-    <div class="badge-live"><div class="dot"></div> Écoute</div>
-    <a href="sender.html" class="btn-goto">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-      Expéditeur
+    <h1 class="title">
+      <div class="title-line1">PUSH</div>
+      <div class="title-line2">NOTIFICATIONS</div>
+    </h1>
+    <p class="subtitle">
+      Envoyez et recevez des notifications web en temps réel
+      grâce à FCM et l'Admin SDK Firebase.
+    </p>
+  </div>
+
+  <!-- Cards -->
+  <div class="cards">
+
+    <a href="send.html" class="card card-send">
+      <div class="card-icon">🚀</div>
+      <div>
+        <div class="card-label">Expéditeur</div>
+        <div class="card-title">Envoyer une<br/>notification</div>
+      </div>
+      <div class="card-desc">
+        Composez et envoyez des notifications push à un ou plusieurs
+        destinataires via leur token FCM.
+      </div>
+      <div class="card-btn">
+        OUVRIR <span class="arrow">→</span>
+      </div>
     </a>
-  </header>
 
-  <!-- Player ID -->
-  <div class="card">
-    <div class="card-label">// Identifiant OneSignal (Player ID)</div>
-    <div class="id-box" id="player-id">
-      <span class="placeholder"><span class="spinner"></span> Initialisation…</span>
-    </div>
-    <div class="actions">
-      <button class="btn btn-outline" id="btn-copy" disabled>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-        Copier
-      </button>
-      <button class="btn btn-accent" id="btn-sub">S'abonner aux notifications</button>
-    </div>
-    <div class="status idle" id="status">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-      <span id="status-text">En attente…</span>
-    </div>
+    <a href="receive.html" class="card card-recv">
+      <div class="card-icon">📡</div>
+      <div>
+        <div class="card-label">Destinataire</div>
+        <div class="card-title">Recevoir les<br/>notifications</div>
+      </div>
+      <div class="card-desc">
+        Activez les notifications, obtenez votre token FCM et
+        visualisez le flux entrant en temps réel.
+      </div>
+      <div class="card-btn">
+        OUVRIR <span class="arrow">→</span>
+      </div>
+    </a>
+
   </div>
 
-  <!-- Feed -->
-  <div class="card">
-    <div class="feed-header">
-      <h2>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--accent)"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-        Notifications reçues
-        <span class="count" id="count">0</span>
-      </h2>
-      <button class="btn-clear" id="btn-clear">Effacer</button>
-    </div>
-    <div id="feed">
-      <div class="empty" id="empty">Aucune notification reçue — les messages apparaîtront ici en temps réel</div>
-    </div>
+  <!-- Features -->
+  <div class="features">
+    <div class="feature"><div class="feature-dot"></div>Admin SDK v12 (OAuth2)</div>
+    <div class="feature"><div class="feature-dot"></div>FCM HTTP API v1</div>
+    <div class="feature"><div class="feature-dot"></div>Service Worker</div>
+    <div class="feature"><div class="feature-dot"></div>Foreground &amp; Background</div>
+    <div class="feature"><div class="feature-dot"></div>Multicast</div>
   </div>
+
+  <div class="footer">PROJECT: data-com-a94a8 · VAPID KEY CONFIGURED</div>
 
 </div>
-<script>
-  // ← Remplacez par votre App ID OneSignal
-  const APP_ID = "a096c3b3-b48a-49e7-9796-0f23bdab056c";
-
-  let playerId = null;
-  let count = 0;
-
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: APP_ID,
-      notifyButton: { enable: false },
-      allowLocalhostAsSecureOrigin: true
-    });
-
-    // Écoute des notifications en premier plan
-    OneSignal.Notifications.addEventListener("foregroundWillDisplay", (event) => {
-      const n = event.notification;
-      addNotif(n.title, n.body);
-    });
-
-    // Récupérer le Player ID si déjà abonné
-    const id = await OneSignal.User.PushSubscription.id;
-    if (id) {
-      setPlayerId(id);
-      setStatus('ok', 'Abonné — en écoute des notifications');
-    } else {
-      document.getElementById('player-id').innerHTML = '<span class="placeholder">Cliquez sur "S\'abonner" pour obtenir votre ID</span>';
-      setStatus('idle', 'Non abonné');
-    }
-  });
-
-  document.getElementById('btn-sub').addEventListener('click', async () => {
-    setStatus('loading', 'Demande d\'autorisation…');
-    OneSignalDeferred.push(async function(OneSignal) {
-      await OneSignal.Notifications.requestPermission();
-      const id = await OneSignal.User.PushSubscription.id;
-      if (id) {
-        setPlayerId(id);
-        setStatus('ok', 'Abonné avec succès — en écoute');
-        document.getElementById('btn-sub').textContent = '✓ Abonné';
-        document.getElementById('btn-sub').style.background = 'var(--success)';
-      } else {
-        setStatus('error', 'Permission refusée ou déjà abonné');
-      }
-    });
-  });
-
-  document.getElementById('btn-copy').addEventListener('click', async () => {
-    if (!playerId) return;
-    await navigator.clipboard.writeText(playerId);
-    const btn = document.getElementById('btn-copy');
-    btn.textContent = '✓ Copié !';
-    btn.style.color = 'var(--success)';
-    btn.style.borderColor = 'var(--success)';
-    setTimeout(() => { btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Copier'; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
-  });
-
-  document.getElementById('btn-clear').addEventListener('click', () => {
-    count = 0;
-    document.getElementById('count').textContent = '0';
-    document.getElementById('feed').innerHTML = '<div class="empty" id="empty">Aucune notification reçue — les messages apparaîtront ici en temps réel</div>';
-  });
-
-  function setPlayerId(id) {
-    playerId = id;
-    document.getElementById('player-id').textContent = id;
-    document.getElementById('btn-copy').disabled = false;
-  }
-
-  function setStatus(type, msg) {
-    document.getElementById('status').className = `status ${type}`;
-    document.getElementById('status-text').textContent = msg;
-  }
-
-  function addNotif(title, body) {
-    const empty = document.getElementById('empty');
-    if (empty) empty.remove();
-    count++;
-    document.getElementById('count').textContent = count;
-
-    const item = document.createElement('div');
-    item.className = 'notif-item';
-    item.innerHTML = `
-      <div class="notif-top">
-        <div>
-          <div class="notif-title">${title || '(Sans titre)'}</div>
-          <div class="notif-body">${body || ''}</div>
-        </div>
-        <div class="notif-time">${new Date().toLocaleTimeString('fr-FR')}</div>
-      </div>`;
-    document.getElementById('feed').insertBefore(item, document.getElementById('feed').firstChild);
-  }
-</script>
 </body>
 </html>
