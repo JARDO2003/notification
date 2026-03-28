@@ -2,12 +2,9 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Vercel parse automatiquement le JSON si Content-Type est application/json
-  // mais on sécurise au cas où req.body serait une string
   let data = req.body;
   if (typeof data === 'string') {
     try { data = JSON.parse(data); } catch { data = {}; }
@@ -32,7 +29,7 @@ module.exports = async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${API_KEY}`
+        'Authorization': `Key ${API_KEY}`   // ✅ v2 key format
       },
       body: JSON.stringify({
         app_id: APP_ID,
