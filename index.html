@@ -325,6 +325,32 @@
     .tag-notif { background: rgba(0,229,255,0.1); color: var(--accent); }
     .tag-data { background: rgba(124,58,237,0.15); color: var(--accent2); }
     .tag-fg { background: rgba(16,185,129,0.1); color: var(--success); }
+
+    .btn-goto-sender {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      color: #f97316;
+      border: 1px solid rgba(249,115,22,0.35);
+      background: rgba(249,115,22,0.07);
+      padding: 6px 14px;
+      border-radius: 20px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-goto-sender:hover {
+      background: rgba(249,115,22,0.18);
+      border-color: #f97316;
+      box-shadow: 0 0 14px rgba(249,115,22,0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn-goto-sender svg { flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -336,6 +362,10 @@
     </div>
     <h1>FCM <span>Récepteur</span></h1>
     <div class="badge-live"><div class="dot-live"></div> Écoute</div>
+    <a href="sender.html" class="btn-goto-sender">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      Expéditeur
+    </a>
   </header>
 
   <!-- Token Section -->
