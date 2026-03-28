@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FCM — Envoi</title>
+  <title>OneSignal — Expéditeur</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
   <style>
@@ -23,43 +23,29 @@
     }
 
     body {
-      background: var(--bg);
-      color: var(--text);
+      background: var(--bg); color: var(--text);
       font-family: 'Syne', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
       padding: 48px 20px;
     }
 
     body::before {
-      content: '';
-      position: fixed; inset: 0;
+      content: ''; position: fixed; inset: 0;
       background:
         radial-gradient(ellipse 60% 40% at 80% 10%, rgba(249,115,22,0.07) 0%, transparent 60%),
         radial-gradient(ellipse 40% 30% at 10% 90%, rgba(251,146,60,0.04) 0%, transparent 60%);
       pointer-events: none; z-index: 0;
     }
 
-    .container {
-      position: relative; z-index: 1;
-      width: 100%; max-width: 520px;
-    }
+    .container { position: relative; z-index: 1; width: 100%; max-width: 520px; }
 
-    header {
-      display: flex; align-items: center; gap: 14px;
-      margin-bottom: 40px;
-    }
+    header { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
 
     .logo-ring {
-      width: 46px; height: 46px;
-      border-radius: 50%;
-      border: 2px solid var(--accent);
-      display: grid; place-items: center;
+      width: 46px; height: 46px; border-radius: 50%;
+      border: 2px solid var(--accent); display: grid; place-items: center;
       box-shadow: 0 0 22px rgba(249,115,22,0.25);
     }
-
     .logo-ring svg { width: 20px; height: 20px; fill: var(--accent); }
 
     header h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; }
@@ -68,88 +54,53 @@
     .btn-back {
       margin-left: auto;
       display: inline-flex; align-items: center; gap: 6px;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.65rem; letter-spacing: 0.06em;
-      text-decoration: none;
-      color: #64748b;
-      border: 1px solid var(--border);
-      background: transparent;
-      padding: 6px 14px; border-radius: 20px;
-      transition: all 0.2s;
+      font-family: 'Space Mono', monospace; font-size: 0.65rem;
+      text-decoration: none; color: #64748b;
+      border: 1px solid var(--border); background: transparent;
+      padding: 6px 14px; border-radius: 20px; transition: all 0.2s;
     }
-
     .btn-back:hover { color: var(--text); border-color: #475569; }
 
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px 28px 24px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 28px 24px;
     }
 
     .field { margin-bottom: 20px; }
     .field:last-child { margin-bottom: 0; }
 
-    label {
-      display: block;
-      font-size: 0.75rem; font-weight: 700;
-      color: #94a3b8;
-      margin-bottom: 8px; letter-spacing: 0.03em;
-    }
+    label { display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 8px; }
 
     input, textarea {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: 'Syne', sans-serif;
-      font-size: 0.9rem;
-      padding: 12px 14px;
-      outline: none;
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif;
+      font-size: 0.9rem; padding: 12px 14px; outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
-
     textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
     input::placeholder, textarea::placeholder { color: var(--muted); }
+    input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(249,115,22,0.1); }
 
-    input:focus, textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
-    }
-
-    #dest-token {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.72rem;
-      min-height: 72px;
-      color: #94a3b8;
+    #player-id {
+      font-family: 'Space Mono', monospace; font-size: 0.72rem;
+      min-height: 72px; color: #94a3b8;
     }
 
     .divider { height: 1px; background: var(--border); margin: 24px 0; }
 
     .btn-send {
-      width: 100%; margin-top: 24px;
-      padding: 15px;
-      background: var(--accent);
-      color: #fff; border: none;
-      border-radius: 10px;
-      font-family: 'Syne', sans-serif;
-      font-size: 1rem; font-weight: 800;
-      letter-spacing: 0.02em;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; margin-top: 24px; padding: 15px;
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 10px; font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 800; cursor: pointer;
+      transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px;
       position: relative; overflow: hidden;
     }
-
     .btn-send::before {
-      content: '';
-      position: absolute; inset: 0;
+      content: ''; position: absolute; inset: 0;
       background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-      transform: translateX(-100%);
-      transition: transform 0.5s;
+      transform: translateX(-100%); transition: transform 0.5s;
     }
-
     .btn-send:hover::before { transform: translateX(100%); }
     .btn-send:hover { background: #ea6c0a; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(249,115,22,0.3); }
     .btn-send:active { transform: translateY(0); }
@@ -157,37 +108,18 @@
 
     .spinner {
       width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: none;
+      border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.7s linear infinite; display: none;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .result-box {
-      margin-top: 14px;
-      border-radius: 8px;
-      padding: 13px 16px;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.73rem; line-height: 1.6;
-      display: none;
-      border: 1px solid transparent;
+    .result {
+      margin-top: 14px; border-radius: 8px; padding: 13px 16px;
+      font-family: 'Space Mono', monospace; font-size: 0.73rem; line-height: 1.6;
+      display: none; border: 1px solid transparent;
     }
-
-    .result-box.success {
-      display: block;
-      background: rgba(16,185,129,0.08);
-      border-color: rgba(16,185,129,0.25);
-      color: var(--success);
-    }
-
-    .result-box.error {
-      display: block;
-      background: rgba(239,68,68,0.08);
-      border-color: rgba(239,68,68,0.25);
-      color: var(--error);
-    }
+    .result.success { display: block; background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.25); color: var(--success); }
+    .result.error   { display: block; background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.25);  color: var(--error); }
   </style>
 </head>
 <body>
@@ -197,7 +129,7 @@
     <div class="logo-ring">
       <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
     </div>
-    <h1>FCM <span>Expéditeur</span></h1>
+    <h1>One<span>Signal</span></h1>
     <a href="receiver.html" class="btn-back">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
       Récepteur
@@ -205,78 +137,77 @@
   </header>
 
   <div class="card">
-
     <div class="field">
-      <label>Token FCM du destinataire</label>
-      <textarea id="dest-token" placeholder="Collez ici le token copié depuis la page Récepteur…"></textarea>
+      <label>Player ID du destinataire</label>
+      <textarea id="player-id" placeholder="Collez ici le Player ID copié depuis la page Récepteur…"></textarea>
     </div>
 
     <div class="divider"></div>
 
     <div class="field">
       <label>Titre</label>
-      <input type="text" id="notif-title" placeholder="Titre de la notification" value="🔔 Nouvelle notification"/>
+      <input type="text" id="title" value="🔔 Nouvelle notification" placeholder="Titre…"/>
     </div>
 
     <div class="field">
       <label>Message</label>
-      <textarea id="notif-body" placeholder="Texte du message…">Ceci est un message test envoyé via FCM.</textarea>
+      <textarea id="body" placeholder="Texte du message…">Ceci est un message test envoyé via OneSignal.</textarea>
     </div>
-
   </div>
 
   <button class="btn-send" id="btn-send" onclick="send()">
     <span class="spinner" id="spinner"></span>
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" id="send-icon"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" id="icon"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
     Envoyer
   </button>
 
-  <div class="result-box" id="result"></div>
+  <div class="result" id="result"></div>
 
 </div>
-
 <script>
-  // Collez ici votre Server Key Firebase (console → Paramètres du projet → Cloud Messaging)
-  const SERVER_KEY = "";
+  // ← Remplacez par vos clés OneSignal
+  const APP_ID   = "VOTRE_APP_ID_ONESIGNAL";
+  const API_KEY  = "VOTRE_REST_API_KEY_ONESIGNAL"; // OneSignal Dashboard → Settings → Keys & IDs
 
-  window.send = async function () {
-    const token   = document.getElementById('dest-token').value.trim();
-    const title   = document.getElementById('notif-title').value.trim();
-    const body    = document.getElementById('notif-body').value.trim();
-    const btn     = document.getElementById('btn-send');
-    const spinner = document.getElementById('spinner');
-    const icon    = document.getElementById('send-icon');
+  async function send() {
+    const playerId = document.getElementById('player-id').value.trim();
+    const title    = document.getElementById('title').value.trim();
+    const body     = document.getElementById('body').value.trim();
 
-    if (!token) return show('error', '⚠ Collez le token FCM du destinataire.');
+    if (!playerId) return show('error', '⚠ Collez le Player ID du destinataire.');
     if (!title || !body) return show('error', '⚠ Le titre et le message sont requis.');
 
-    const key = SERVER_KEY || prompt('Entrez votre Server Key Firebase :');
-    if (!key) return show('error', '⚠ Clé serveur manquante.');
+    const btn     = document.getElementById('btn-send');
+    const spinner = document.getElementById('spinner');
+    const icon    = document.getElementById('icon');
 
     btn.disabled = true;
     spinner.style.display = 'block';
     icon.style.display = 'none';
-    document.getElementById('result').className = 'result-box';
+    document.getElementById('result').className = 'result';
 
     try {
-      const res = await fetch('https://fcm.googleapis.com/fcm/send', {
+      const res = await fetch('https://onesignal.com/api/v1/notifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `key=${key}`
+          'Authorization': `Basic ${API_KEY}`
         },
         body: JSON.stringify({
-          to: token,
-          notification: { title, body }
+          app_id: APP_ID,
+          include_player_ids: [playerId],
+          headings: { en: title, fr: title },
+          contents: { en: body, fr: body }
         })
       });
 
       const json = await res.json();
 
-      if (res.ok && json.success === 1) {
-        show('success', '✓ Notification envoyée avec succès !');
+      if (res.ok && json.id) {
+        show('success', `✓ Notification envoyée ! (id: ${json.id})`);
       } else {
-        show('error', `✗ ${json.error || JSON.stringify(json)}`);
+        const err = json.errors ? json.errors.join(', ') : JSON.stringify(json);
+        show('error', `✗ Erreur OneSignal : ${err}`);
       }
     } catch (err) {
       show('error', `✗ Erreur réseau : ${err.message}`);
@@ -285,11 +216,11 @@
       spinner.style.display = 'none';
       icon.style.display = '';
     }
-  };
+  }
 
   function show(type, msg) {
     const el = document.getElementById('result');
-    el.className = `result-box ${type}`;
+    el.className = `result ${type}`;
     el.textContent = msg;
   }
 </script>
