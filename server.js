@@ -1,0 +1,120 @@
+/**
+ * server.js — Serveur Express pour envoyer des notifications FCM
+ * Utilise Firebase Admin SDK (OAuth2 / access token — nouvelle API)
+ *
+ * Installation : npm install express cors firebase-admin
+ * Lancement    : node server.js
+ */
+
+const express = require('express');
+const cors    = require('cors');
+const admin   = require('firebase-admin');
+
+// ── Clé de service ──────────────────────────────────────────────────────────
+const serviceAccount = {
+  type: "service_account",
+  project_id: "data-com-a94a8",
+  private_key_id: "973bccf7f89a8cf770081af02ec0f5ff1adf24e7",
+  private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCykPXvfVaB4ZEE\nY+Mv11RdmoBDkShM/7FGz6Nr7n4xFbQIWu4geRDndGOoxLX1/jN44bSz0r8ypXg9\naNMwlfDC5eF/pof2WANxcxuUIGQ2Ja97R4tKRM7seM15aciVH4aujas4Pe2P2Qc6\nCl9+JBR1uzPrBmWhGzKZd6XBHhH7Ex2sZPDGOcHwVVy3S0COMxKY6L2+/izLAOYb\n0RJ6yg7aBGd1Fu9zsTV6rlKoSdexvbPSHhvVyncM9hIRLswXPs17NBXnegjm3CeN\n2C1mP+v1Bqbt2cl2RU0uPQh/71ejLnRvBv8rnGSjeaNXpoZc2ZU8rZDYe0uGS1lI\ndFEQDs19AgMBAAECggEAAVhnLpaebi7iHlFEug/J0W5lexalH/CMIOfiH58QnK5q\nKZy6BtlY2Yfjpc/ITW5txsBCpFlJmGtc02dseEtJrTlT/ug5sRNMAKJo0HGkSfaI\nwTsh54GVPVN3ekJ0j1YHKcl5GdBkNbD+Xi/RuSsJrcdk+wxvVoRxYBojx6utgSnr\nKqh3aSPVPYoXcSMyUirLWblRIAL+O6eC/NBkfbde7VJaAN59PYTi8HNQDqruKNH+\n9wWM0d+zNFy9A/GmqUlyo2J9H6fERQ0m3Zua2s/LhwFp7tg2c8wLBRXknAApFNIU\nOG5DiNpG+r9Pyx822Ml+DhkApbDhtIesjFSe9zN4uwKBgQDoWVestOxcI6UvDUcu\nP0f7GV00jC7COU02CSi75QNSnQOR4ZtR3CABcr8OzQ1U+DFABfGy8lEgeG/aHk4z\nb6/YpH5tv5FuucaA1beNXZW7EF8DffgAA0brI3oN0EnXMJSAO4povuRNFNDzspKV\nwg8Oyp5xny18EZ9TUgrZz62jiwKBgQDEvh9m4CFSlxrkncj6lFEwMyjA1LAhgVGD\nohX0PHyWGQAlsxJb7x+SFaKvnemaU9jyR2uFDzDlOEYvCCYVfxYKZFh8gSBCg8kR\nrJ6GT/X0ZvbQCKwWkBBhxlF5kPvNOY/BaS6M5eNr3Ps1+NUSAxIbJnlw1UhFDXu5\nF6pY3NLUFwKBgQDMa0Y6uZa13dqHkfwNETnIDmG1SJwe3wEySE6hOPR6a4/negEH\nvU4fWBAF+pv/JLlX5aLnWE/N7Igj88PDd0DTrq1Y61ENhL7DPMRXyH1ibh3Z2asm\nf7uWRsksfBNrEt+kDj5Qt5nuwyCvN23F+kz7K4LI3k3LOUneqXDIfvH6zwKBgCLw\nvPTxQxm+2jjVyNavtod/3nH4k9svc0GUbJ+2ik3B3OPVHKKVIh84lm7n9Y/B6lqE\n0pSL8RwUVWqO4OyaaFiqH4jlCcymSPRJmtGxq7We/6BMmftb1Hz40olrdTyqR1yL\nCIhfX3dNhJO+QGD1iKanu5ONXUteLKXfjRJBDXQ7AoGAICO0j6eO+d16NOln5mO+\nAGDaXKaXJ02VYvn+U4kQwAIoDmY85MCjfkzWFCwrQ1qruoIACyGJg1pGC+FozWx/\nbJJnnpV0URYifeyKRrtAIK1GJ5c1+uPUNszvFYXeN0gU+qikbaDr3XhRkH+LKnEy\n1RuvR30MwZN20EjkfllQ51Q=\n-----END PRIVATE KEY-----\n",
+  client_email: "firebase-adminsdk-fbsvc@data-com-a94a8.iam.gserviceaccount.com",
+  client_id: "101594480167817977368",
+  auth_uri: "https://accounts.google.com/o/oauth2/auth",
+  token_uri: "https://oauth2.googleapis.com/token",
+  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+  client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40data-com-a94a8.iam.gserviceaccount.com",
+  universe_domain: "googleapis.com"
+};
+
+// ── Initialisation Admin SDK ─────────────────────────────────────────────────
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+const messaging = admin.messaging();
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+// ── Route : envoyer une notification à un token FCM ──────────────────────────
+app.post('/send-notification', async (req, res) => {
+  const { token, title, body, data } = req.body;
+
+  if (!token || !title || !body) {
+    return res.status(400).json({
+      success: false,
+      error: 'Champs requis : token, title, body'
+    });
+  }
+
+  const message = {
+    token,
+    notification: { title, body },
+    data: data || {},
+    webpush: {
+      headers: { Urgency: 'high' },
+      notification: {
+        title,
+        body,
+        icon: '/icon.png',
+        badge: '/badge.png',
+        requireInteraction: true,
+      },
+    },
+  };
+
+  try {
+    const response = await messaging.send(message);
+    console.log('✅ Notification envoyée:', response);
+    res.json({ success: true, messageId: response });
+  } catch (error) {
+    console.error('❌ Erreur FCM:', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ── Route : envoyer à plusieurs tokens ───────────────────────────────────────
+app.post('/send-multicast', async (req, res) => {
+  const { tokens, title, body, data } = req.body;
+
+  if (!tokens?.length || !title || !body) {
+    return res.status(400).json({
+      success: false,
+      error: 'Champs requis : tokens (tableau), title, body'
+    });
+  }
+
+  const message = {
+    tokens,
+    notification: { title, body },
+    data: data || {},
+    webpush: {
+      headers: { Urgency: 'high' },
+      notification: { title, body, icon: '/icon.png', requireInteraction: true },
+    },
+  };
+
+  try {
+    const response = await messaging.sendEachForMulticast(message);
+    console.log(`✅ Résultats: ${response.successCount} succès, ${response.failureCount} échecs`);
+    res.json({
+      success: true,
+      successCount: response.successCount,
+      failureCount: response.failureCount,
+      responses: response.responses.map((r, i) => ({
+        token: tokens[i].slice(0, 20) + '...',
+        success: r.success,
+        error: r.error?.message || null,
+      })),
+    });
+  } catch (error) {
+    console.error('❌ Erreur multicast:', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ── Démarrage ────────────────────────────────────────────────────────────────
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Serveur FCM démarré sur http://localhost:${PORT}`);
+});
