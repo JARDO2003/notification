@@ -5,10 +5,17 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#080b12"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="GE Messenger"/>
+<meta name="application-name" content="GE Messenger"/>
 <meta name="description" content="Groupe Express – Messagerie sécurisée"/>
-<link rel="manifest" href="manifest.json"/>
+<meta name="msapplication-TileColor" content="#080b12"/>
+<meta name="msapplication-TileImage" content="/images/icon-192.png"/>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="apple-touch-icon" href="/images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png"/>
 <title>GE Messenger</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
@@ -114,7 +121,7 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
 /* SCREENS WITH BOTTOM NAV */
 #s-home,#s-groups,#s-feed{padding-bottom:0}
 
-/* ══ STORIES ══ */
+/* STORIES */
 .stories-row{display:flex;gap:10px;padding:12px 14px 6px;overflow-x:auto;flex-shrink:0}
 .stories-row::-webkit-scrollbar{display:none}
 .story-item{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0}
@@ -128,7 +135,7 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
 .story-name{font-size:10px;color:var(--t2);text-align:center;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .story-add-ic{font-size:22px}
 
-/* ══ STORY VIEWER ══ */
+/* STORY VIEWER */
 #story-viewer{position:fixed;inset:0;z-index:600;background:#000;display:none;flex-direction:column}
 #story-viewer.on{display:flex}
 .sv-progress{display:flex;gap:4px;padding:12px 14px 6px;position:absolute;top:0;left:0;right:0;z-index:3}
@@ -150,7 +157,7 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
 .sv-emoji{font-size:24px;cursor:pointer;transition:transform .15s}
 .sv-emoji:hover{transform:scale(1.3)}
 
-/* ══ STORY COMPOSE ══ */
+/* STORY COMPOSE */
 #story-compose{position:fixed;inset:0;z-index:601;background:var(--bg);display:none;flex-direction:column}
 #story-compose.on{display:flex}
 .sc-header{display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid var(--border)}
@@ -172,7 +179,7 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
 .sc-col{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s;flex-shrink:0}
 .sc-col.sel{border-color:#fff;transform:scale(1.15)}
 
-/* ══ PROFILE MODAL ══ */
+/* PROFILE MODAL */
 #profile-modal{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center}
 #profile-modal.on{display:flex}
 .pm-card{width:100%;max-width:480px;background:var(--s1);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:0 0 env(safe-area-inset-bottom,16px);animation:slideUp .3s cubic-bezier(.22,1,.36,1);max-height:85vh;overflow-y:auto}
@@ -204,7 +211,7 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
 .pm-stat-val{font-size:18px;font-weight:800;color:var(--red)}
 .pm-stat-lbl{font-size:10px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
 
-/* ══ INBOX ══ */
+/* INBOX */
 #s-inbox{z-index:20;background:var(--bg)}
 .ib-tbar{height:var(--topbar);background:rgba(8,11,18,.98);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;position:relative;z-index:5}
 .back{width:36px;height:36px;border-radius:10px;background:var(--s2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);font-size:18px;flex-shrink:0;transition:all .2s}
@@ -273,12 +280,12 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
 .ei-ic{font-size:46px;opacity:.35}
 .ei p{font-size:14px;color:var(--t2);line-height:1.6;max-width:250px}
 
-/* ══ GROUPS SCREEN ══ */
+/* GROUPS SCREEN */
 .fab{position:fixed;bottom:calc(var(--nav) + 16px);right:18px;z-index:30;width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--red),#9b000a);border:none;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(232,18,26,.45);transition:all .2s;display:none}
 .fab:hover{transform:scale(1.07);box-shadow:0 8px 30px rgba(232,18,26,.6)}
 .fab.on{display:flex;align-items:center;justify-content:center}
 
-/* ══ FEED SCREEN ══ */
+/* FEED SCREEN */
 .feed-wrap{flex:1;overflow-y:auto;padding:12px 12px calc(var(--nav) + 14px)}
 .feed-wrap::-webkit-scrollbar{width:3px}
 .feed-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
@@ -303,11 +310,11 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
 .post-name:hover{color:var(--red)}
 .post-sub{font-size:11px;color:var(--t3)}
 
-/* ══ PWA INSTALL BUTTON IN TBAR ══ */
+/* PWA INSTALL BUTTON */
 .pwa-tbar-btn{padding:6px 12px;background:linear-gradient(135deg,var(--gold),#c47a00);border:none;border-radius:9px;color:#000;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px;flex-shrink:0}
 .pwa-tbar-btn:hover{opacity:.9}
 
-/* ══ MODALS ══ */
+/* MODALS */
 .modal-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center}
 .modal-bg.on{display:flex}
 .modal-card{width:100%;max-width:480px;background:var(--s1);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:0 0 env(safe-area-inset-bottom,16px);animation:slideUp .3s cubic-bezier(.22,1,.36,1);max-height:90vh;overflow-y:auto}
@@ -340,7 +347,7 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
 .join-anon-wrap h3{font-size:16px;font-weight:800;margin-bottom:6px}
 .join-anon-wrap p{font-size:13px;color:var(--t2);margin-bottom:16px;line-height:1.5}
 
-/* ══ NOTIFICATION PANEL ══ */
+/* NOTIFICATION PANEL */
 #notif-panel{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center}
 #notif-panel.on{display:flex}
 .np-card{width:100%;max-width:480px;background:var(--s1);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:0 0 env(safe-area-inset-bottom,16px);animation:slideUp .3s cubic-bezier(.22,1,.36,1)}
@@ -380,7 +387,7 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
 .perm-btn.grd{background:rgba(30,209,122,.2);color:var(--green);border:1px solid rgba(30,209,122,.3)}
 .test-btn{width:100%;padding:11px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:11px;color:var(--blue);font-family:'Sora',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px}
 
-/* ══ CALL OVERLAY ══ */
+/* CALL OVERLAY */
 #cov{position:fixed;inset:0;z-index:300;background:linear-gradient(180deg,#0d1120,#080b12);display:none;flex-direction:column;align-items:center}
 #cov.on{display:flex}
 .vs{position:absolute;inset:0;z-index:1}
@@ -406,7 +413,7 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
 .cbtn.ca{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.25);color:var(--blue)}
 .cbtn.en{background:var(--red);color:#fff;box-shadow:0 4px 18px rgba(232,18,26,.4)}
 
-/* ══ INCOMING CALL ══ */
+/* INCOMING CALL */
 #ic{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:400;background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:18px 20px;width:calc(100% - 28px);max-width:360px;display:none;box-shadow:0 8px 40px rgba(0,0,0,.5)}
 #ic.on{display:block;animation:icIn .3s cubic-bezier(.22,1,.36,1)}
 @keyframes icIn{from{transform:translateX(-50%) translateY(-20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
@@ -478,11 +485,10 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
   <div class="tbar">
     <div class="emb-sm">GE</div>
     <div class="tb-info"><div class="tb-title">GE MESSENGER</div><div class="tb-sub" id="ocnt">Chargement…</div></div>
-    <button class="pwa-tbar-btn" id="pwa-tbar-btn" onclick="installPWA()">📲 Installer</button>
+    <button class="pwa-tbar-btn" id="pwa-tbar-btn" onclick="installPWA()" style="display:none">📲 Installer</button>
     <div class="notif-btn" onclick="openNotifPanel()">🔔<div class="notif-badge" id="notif-badge"></div></div>
     <div id="myav" onclick="logout()" style="margin-left:6px"></div>
   </div>
-  <!-- STORIES ROW -->
   <div class="stories-row" id="stories-row">
     <div class="story-item" onclick="openStoryCompose()">
       <div class="story-ring add-story"><div class="story-av"><span class="story-add-ic">＋</span></div></div>
@@ -525,7 +531,7 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
   </div>
 </div>
 
-<!-- INBOX (DM or Group) -->
+<!-- INBOX -->
 <div id="s-inbox" class="screen">
   <div class="ib-tbar">
     <div class="back" onclick="closeInbox()">&#8592;</div>
@@ -576,7 +582,6 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
   </div>
 </nav>
 
-<!-- FAB Create Group -->
 <button class="fab" id="fab-grp" onclick="openCreateGroup()">＋</button>
 
 <!-- CALL OVERLAY -->
@@ -882,7 +887,6 @@ let pc=null,locStr=null,remStr=null,callT=null,cTmr=null,isMuted=false,isCamOff=
 let mrec=null,aChunks=[],rTmr=null,rSec=0;
 let curTab='home',postPendMedia=null,postPendMediaType=null;
 let deferredInstallPrompt=null;
-// Stories
 let allStories=[],storyIdx=0,storyUserIdx=0,storyGroups=[],svTimer=null,svProg=null;
 let storyType='photo',storyBgColor='#e8121a',storyPendFile=null;
 
@@ -933,7 +937,6 @@ function avEl(m,size=50,radius='50%'){
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id)?.classList.add('on');}
 
-// ════ NAV HIDE/SHOW in inbox ════
 function hideNav(){document.getElementById('bnav').classList.add('hidden-nav');}
 function showNav(){document.getElementById('bnav').classList.remove('hidden-nav');}
 
@@ -979,9 +982,13 @@ window.register=async()=>{
 function launch(){
   show('s-home');document.getElementById('bnav').classList.add('on');
   renderMyAv();setupPresence();listenMembers();setupFCM();listenSignals();
-  listenFeed();
-  listenStories();
+  listenFeed();listenStories();
   toast(`Bienvenue ${me.firstName} ! 🎉`,'success');
+  // Gérer le shortcut PWA (?tab=groups etc.)
+  const _pwaTab=new URLSearchParams(location.search).get('tab');
+  if(_pwaTab&&['home','groups','feed'].includes(_pwaTab)){
+    setTimeout(()=>switchTab(_pwaTab),200);
+  }
   if('Notification'in window&&Notification.permission!=='granted')document.getElementById('notif-badge').classList.add('on');
 }
 
@@ -1236,7 +1243,6 @@ window.closeProfileModalDirect=()=>document.getElementById('profile-modal').clas
 window.startCallFromProfile=async(uid,type)=>{
   peer=members[uid];if(!peer)return;await openInboxDM(uid);setTimeout(()=>startCall(type),300);
 };
-
 window.openPeerProfile=()=>{if(peer&&peer.uid)openProfileModal(peer.uid);};
 
 // ════ GROUPS ════
@@ -1476,10 +1482,9 @@ function listenTyping(convId){
 }
 
 // ════ FEED ════
-let unsubFeed=null,feedLoaded=false;
+let unsubFeed=null;
 function listenFeed(){
   if(unsubFeed)return;
-  feedLoaded=true;
   unsubFeed=onSnapshot(query(collection(db,'ge_posts'),orderBy('ts','desc'),limit(50)),snap=>{
     const posts=snap.docs.map(d=>({id:d.id,...d.data()}));renderFeed(posts);
   });
@@ -1532,7 +1537,6 @@ window.toggleLike=async(pid,wasLiked)=>{
 };
 window.focusComment=()=>toast('Commentaires à venir 🚧','info');
 
-// POST COMPOSE
 window.openPostCompose=(type)=>{
   document.getElementById('post-text-inp').value='';
   document.getElementById('post-media-preview').style.display='none';
@@ -1591,7 +1595,6 @@ window.testAllSounds=async()=>{
   for(const[type,label]of[['msg','💬 Message'],['call','📞 Appel']]){toast(`Son: ${label}`,'info',800);try{const k=NS.sounds[type];const ctx=getCtx();const l={stop:null};if(SOUNDS[k]){SOUNDS[k](ctx,(NS.vol||80)/100,l);setTimeout(()=>l.stop&&l.stop(),700);}}catch(e){}await new Promise(r=>setTimeout(r,1000));}
 };
 
-// ════ NOTIFICATIONS NAVIGATEUR — avec icône GE Messenger ════
 function sendBrowserNotif(title,body,msgType){
   if(!NS.master||!NS.msg)return;
   if('Notification'in window&&Notification.permission==='granted'){
@@ -1600,8 +1603,8 @@ function sendBrowserNotif(title,body,msgType){
     new Notification(`GE – ${title}`,{
       body:prefix?(prefix+' '+body):body,
       tag:'ge-msg',
-      icon:'/images/n.jpg',
-      badge:'/images/n.jpg'
+      icon:'/images/icon-192.png',
+      badge:'/images/icon-192.png'
     });
   }
 }
@@ -1644,14 +1647,13 @@ function showIC(d){
   document.getElementById('icname').textContent=caller.fullName;
   document.getElementById('ictype').textContent=d.callType==='video'?'📹 Appel vidéo':'🎙️ Appel audio';
   document.getElementById('ic').classList.add('on');
-  // Notification appel entrant avec icône GE Messenger
   if('Notification'in window&&Notification.permission==='granted'&&NS.master&&NS.calls){
     new Notification('GE – Appel entrant',{
       body:`${caller.fullName} vous appelle`,
       tag:'ge-call',
       renotify:true,
-      icon:'/images/n.jpg',
-      badge:'/images/n.jpg'
+      icon:'/images/icon-192.png',
+      badge:'/images/icon-192.png'
     });
   }
   vibrate([500,200,500,200,500]);startRingLoop();
@@ -1684,7 +1686,6 @@ function showCOv(target,type,stat){
 }
 function startCTmr(){let s=0;document.getElementById('cdur').style.display='block';cTmr=setInterval(()=>{s++;const m=Math.floor(s/60);document.getElementById('cdur').textContent=`${m}:${(s%60).toString().padStart(2,'0')}`;},1000);}
 
-// ════ FIN D'APPEL — sans son parasite ════
 window.endCall=()=>{
   stopRingLoop();
   if(peer)sig(peer.uid,{type:'end'}).catch(()=>{});
@@ -1692,7 +1693,6 @@ window.endCall=()=>{
   document.getElementById('cov').classList.remove('on');
   document.getElementById('cdur').style.display='none';
   document.getElementById('ic').classList.remove('on');
-  // Stopper les pistes AVANT de fermer la connexion pour éviter les bruits parasites
   if(locStr){locStr.getTracks().forEach(t=>t.stop());locStr=null;}
   if(pc){pc.close();pc=null;}
   vibrate([200]);
@@ -1710,16 +1710,19 @@ window.closeModalDirect=(id)=>document.getElementById(id)?.classList.remove('on'
 window.openLb=(t,url)=>{const lb=document.getElementById('lb');lb.innerHTML='<div class="lbc">✕</div>';const el=document.createElement(t==='img'?'img':'video');el.src=url;if(t!=='img'){el.controls=true;el.autoplay=true;}lb.appendChild(el);lb.classList.add('on');};
 window.closeLb=()=>document.getElementById('lb').classList.remove('on');
 
-// ════ PWA — Installation ════
+// ════ PWA ════
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
   deferredInstallPrompt=e;
-  document.getElementById('pwa-banner').classList.add('on');
+  // Afficher le bouton et la bannière seulement si pas déjà installé
+  if(!window.matchMedia('(display-mode: standalone)').matches){
+    document.getElementById('pwa-tbar-btn').style.display='flex';
+    document.getElementById('pwa-banner').classList.add('on');
+  }
 });
 
 window.installPWA=async()=>{
   if(!deferredInstallPrompt){
-    // Guide selon le navigateur/OS
     const ua=navigator.userAgent.toLowerCase();
     if(/iphone|ipad|ipod/.test(ua)){
       toast('Sur iOS Safari : appuyez sur 📤 Partager → "Sur l\'écran d\'accueil"','info',7000);
@@ -1734,17 +1737,48 @@ window.installPWA=async()=>{
   const{outcome}=await deferredInstallPrompt.userChoice;
   if(outcome==='accepted'){
     document.getElementById('pwa-banner').classList.remove('on');
+    document.getElementById('pwa-tbar-btn').style.display='none';
     toast('Application installée ! 📲','success');
   }
   deferredInstallPrompt=null;
 };
 
-window.dismissPWA=()=>{document.getElementById('pwa-banner').classList.remove('on');};
+window.dismissPWA=()=>{
+  document.getElementById('pwa-banner').classList.remove('on');
+};
 
-if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+// ════ SERVICE WORKER PWA ════
+if('serviceWorker'in navigator){
+  window.addEventListener('load',async()=>{
+    try{
+      const reg=await navigator.serviceWorker.register('/sw.js',{scope:'/'});
+      reg.addEventListener('updatefound',()=>{
+        const nw=reg.installing;
+        nw.addEventListener('statechange',()=>{
+          if(nw.state==='installed'&&navigator.serviceWorker.controller){
+            nw.postMessage({type:'SKIP_WAITING'});
+          }
+        });
+      });
+      navigator.serviceWorker.addEventListener('message',ev=>{
+        if(ev.data?.type==='NOTIFICATION_CLICK'){
+          const tab=new URLSearchParams(new URL(ev.data.url||'/',location.origin).search).get('tab');
+          if(tab&&window.switchTab)window.switchTab(tab);
+        }
+      });
+    }catch(e){console.warn('[SW]',e);}
+  });
+}
 
 // ════ BOOT ════
 loadNS();
+
+// Détection mode standalone (PWA déjà installée)
+if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true){
+  document.getElementById('pwa-tbar-btn').style.display='none';
+  document.getElementById('pwa-banner').style.setProperty('display','none','important');
+}
+
 const sv=localStorage.getItem('ge_me');
 if(sv){
   try{
