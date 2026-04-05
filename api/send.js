@@ -1,10 +1,6 @@
 const admin = require('firebase-admin');
 
-// ═══════════════════════════════════════════════════════════════
-// GE MESSENGER - NOTIFICATION SERVER
-// Envoie des notifications push FCM aux utilisateurs
-// ═══════════════════════════════════════════════════════════════
-
+// Init une seule fois (réutilisé entre les invocations Vercel)
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -23,19 +19,15 @@ if (!admin.apps.length) {
 
 const messaging = admin.messaging();
 
-// ═══════════════════════════════════════════════════════════════
-// FONCTION PRINCIPALE - Endpoint API
-// ═══════════════════════════════════════════════════════════════
 module.exports = async (req, res) => {
-  // CORS headers
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { tokens, title, body, data, type = 'message' } = req.body;
+  const { tokens, title, body, data } = req.body;
 
   if (!tokens?.length || !title || !body) {
     return res.status(400).json({ error: 'Champs requis : tokens[], title, body' });
@@ -43,13 +35,21 @@ module.exports = async (req, res) => {
 
   const db = admin.database();
 
-  // Construire le message selon le type
-  const message = buildMessage(type, tokens, title, body, data);
+  // Envoi multicast
+  const message = {
+    tokens,
+    notification: { title, body },
+    data: data || {},
+    webpush: {
+      headers: { Urgency: 'high' },
+      notification: { title, body, icon: '/icon.png', requireInteraction: true },
+    },
+  };
 
   try {
     const result = await messaging.sendEachForMulticast(message);
 
-    // Supprimer les tokens invalides
+    // Supprimer les tokens invalides de la DB
     const invalidTokens = [];
     result.responses.forEach((r, i) => {
       if (!r.success && (
@@ -61,11 +61,11 @@ module.exports = async (req, res) => {
     });
 
     if (invalidTokens.length) {
-      const snapshot = await db.ref('ge_members').once('value');
+      const snapshot = await db.ref('fcm_tokens').once('value');
       const all = snapshot.val() || {};
       for (const [key, val] of Object.entries(all)) {
-        if (invalidTokens.includes(val.fcmToken)) {
-          await db.ref(`ge_members/${key}/fcmToken`).remove();
+        if (invalidTokens.includes(val.token)) {
+          await db.ref(`fcm_tokens/${key}`).remove();
         }
       }
     }
@@ -74,203 +74,9 @@ module.exports = async (req, res) => {
       success: true,
       successCount: result.successCount,
       failureCount: result.failureCount,
-      invalidTokens: invalidTokens.length
     });
   } catch (err) {
-    console.error('[FCM Error]', err);
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
-
-// ═══════════════════════════════════════════════════════════════
-// CONSTRUCTEUR DE MESSAGES PAR TYPE
-// ═══════════════════════════════════════════════════════════════
-function buildMessage(type, tokens, title, body, data = {}) {
-  const baseMessage = {
-    tokens,
-    notification: { title, body },
-    data: {
-      type,
-      ...data,
-      click_action: 'FLUTTER_NOTIFICATION_CLICK'
-    },
-    android: {
-      notification: {
-        channelId: `ge-${type}`,
-        priority: 'high',
-        defaultSound: true,
-        defaultVibrateTimings: true
-      }
-    },
-    apns: {
-      payload: {
-        aps: {
-          alert: { title, body },
-          badge: 1,
-          sound: 'default'
-        }
-      }
-    }
-  };
-
-  switch (type) {
-    case 'message':
-      return {
-        ...baseMessage,
-        webpush: {
-          headers: { Urgency: 'high' },
-          notification: {
-            title: `💬 ${title}`,
-            body,
-            icon: '/images/d.png',
-            badge: '/images/d.png',
-            tag: `ge-msg-${data.convId || 'unknown'}`,
-            requireInteraction: false,
-            vibrate: [150, 80, 150],
-            actions: [
-              { action: 'reply', title: '✏️ Répondre' },
-              { action: 'read', title: '✓ Lu' },
-              { action: 'dismiss', title: '✕ Ignorer' }
-            ]
-          },
-          fcmOptions: { link: data?.url || '/' }
-        }
-      };
-
-    case 'post':
-      return {
-        ...baseMessage,
-        webpush: {
-          headers: { Urgency: 'normal' },
-          notification: {
-            title: `📰 ${title}`,
-            body,
-            icon: '/images/d.png',
-            badge: '/images/d.png',
-            tag: 'ge-post',
-            requireInteraction: false,
-            vibrate: [200, 100],
-            image: data.mediaUrl || undefined,
-            actions: [
-              { action: 'open', title: '📰 Voir' },
-              { action: 'like', title: '❤️ J\'aime' },
-              { action: 'dismiss', title: '✕ Ignorer' }
-            ]
-          },
-          fcmOptions: { link: '/?tab=feed' }
-        }
-      };
-
-    case 'like':
-      return {
-        ...baseMessage,
-        webpush: {
-          headers: { Urgency: 'normal' },
-          notification: {
-            title: `❤️ ${title}`,
-            body,
-            icon: '/images/d.png',
-            badge: '/images/d.png',
-            tag: 'ge-like',
-            requireInteraction: false,
-            vibrate: [100, 50],
-            actions: [
-              { action: 'open', title: '👁️ Voir' },
-              { action: 'dismiss', title: '✕ Ignorer' }
-            ]
-          },
-          fcmOptions: { link: '/?tab=feed' }
-        }
-      };
-
-    case 'call':
-      return {
-        ...baseMessage,
-        webpush: {
-          headers: { Urgency: 'high' },
-          notification: {
-            title: `📞 ${title}`,
-            body: 'Appel entrant...',
-            icon: '/images/d.png',
-            badge: '/images/d.png',
-            tag: 'ge-call',
-            requireInteraction: true,
-            vibrate: [500, 200, 500, 200, 500],
-            actions: [
-              { action: 'accept', title: '✅ Répondre' },
-              { action: 'decline', title: '❌ Refuser' }
-            ]
-          },
-          fcmOptions: { link: '/?call=accept' }
-        }
-      };
-
-    case 'story':
-      return {
-        ...baseMessage,
-        webpush: {
-          headers: { Urgency: 'normal' },
-          notification: {
-            title: `✨ ${title}`,
-            body,
-            icon: '/images/d.png',
-            badge: '/images/d.png',
-            tag: 'ge-story',
-            requireInteraction: false,
-            vibrate: [150, 50, 150],
-            image: data.storyUrl || undefined,
-            actions: [
-              { action: 'view', title: '👁️ Voir' },
-              { action: 'reply', title: '💬 Répondre' },
-              { action: 'dismiss', title: '✕ Ignorer' }
-            ]
-          },
-          fcmOptions: { link: '/?tab=home' }
-        }
-      };
-
-    default:
-      return {
-        ...baseMessage,
-        webpush: {
-          headers: { Urgency: 'normal' },
-          notification: {
-            title,
-            body,
-            icon: '/images/d.png',
-            badge: '/images/d.png'
-          },
-          fcmOptions: { link: data?.url || '/' }
-        }
-      };
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// FONCTION AUXILIAIRE - Envoi a un utilisateur specifique
-// ═══════════════════════════════════════════════════════════════
-async function sendToUser(uid, title, body, data = {}, type = 'message') {
-  try {
-    const db = admin.database();
-    const userSnap = await db.ref(`ge_members/${uid}`).once('value');
-    const userData = userSnap.val();
-    
-    if (!userData?.fcmToken) {
-      console.log(`[FCM] No token for user ${uid}`);
-      return { success: false, error: 'No FCM token' };
-    }
-
-    const message = buildMessage(type, [userData.fcmToken], title, body, data);
-    delete message.tokens;
-    message.token = userData.fcmToken;
-
-    const result = await messaging.send(message);
-    return { success: true, messageId: result };
-  } catch (err) {
-    console.error(`[FCM] Error sending to ${uid}:`, err);
-    return { success: false, error: err.message };
-  }
-}
-
-// Export pour utilisation externe
-module.exports.sendToUser = sendToUser;
