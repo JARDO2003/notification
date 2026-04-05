@@ -18,13 +18,13 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(payload => {
   const { title, body } = payload.notification || {};
-  const notifTitle = title || 'GE Messenger';
+  const notifTitle = title || 'Express Messenger';
   const notifBody  = body  || 'Nouveau message';
 
   return self.registration.showNotification(notifTitle, {
     body: notifBody,
-    icon: '/images/icon-192.png',
-    badge: '/images/icon-192.png',
+    icon: '/images/d.png',
+    badge: '/images/d.png',
     tag: 'ge-bg-msg',
     renotify: true,
     vibrate: [150, 80, 150],
