@@ -1,5 +1,3 @@
-
-
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
@@ -17,13 +15,37 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 // ── Cache PWA ──
-const CACHE_NAME = 'ge-messenger-v5';
+const CACHE_NAME = 'ge-messenger-v6';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/images/d.png',
 ];
+
+// ── Domaines à NE PAS intercepter ──
+// Kaspersky, Firebase realtime, FCM, CDNs externes, extensions Chrome
+const BYPASS_HOSTS = [
+  'kis.v2.scr.kaspersky-labs.com',
+  'kaspersky',
+  'firebaseio.com',
+  'firestore.googleapis.com',
+  'fcm.googleapis.com',
+  'cloudinary.com',
+  'googleapis.com',
+  'gstatic.com',
+];
+
+function shouldBypass(url) {
+  try {
+    const u = new URL(url);
+    if (u.protocol === 'chrome-extension:') return true;
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return true;
+    return BYPASS_HOSTS.some(h => u.hostname.includes(h));
+  } catch (_) {
+    return true; // URL invalide → ignorer
+  }
+}
 
 // ── Install ──
 self.addEventListener('install', event => {
@@ -57,25 +79,22 @@ self.addEventListener('activate', event => {
 
 // ── Fetch : Network First + fallback Cache ──
 self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-
-  if (
-    event.request.method !== 'GET' ||
-    url.hostname.includes('firebaseio.com') ||
-    url.hostname.includes('firestore.googleapis.com') ||
-    url.hostname.includes('fcm.googleapis.com') ||
-    url.hostname.includes('cloudinary.com') ||
-    url.hostname.includes('googleapis.com') ||
-    url.hostname.includes('gstatic.com') ||
-    url.protocol === 'chrome-extension:'
-  ) return;
+  // Ignorer tout ce qui ne doit pas être intercepté
+  if (event.request.method !== 'GET') return;
+  if (shouldBypass(event.request.url)) return;
 
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        if (response && response.status === 200 && response.type !== 'opaque') {
+        // Ne mettre en cache que les réponses valides
+        if (
+          response &&
+          response.status === 200 &&
+          response.type !== 'opaque' &&
+          response.type !== 'error'
+        ) {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone)).catch(() => {});
         }
         return response;
       })
@@ -85,6 +104,12 @@ self.addEventListener('fetch', event => {
           if (event.request.headers.get('accept')?.includes('text/html')) {
             return caches.match('/index.html');
           }
+          // Retourner une réponse d'erreur propre plutôt que de rejeter la promesse
+          return new Response('Hors ligne', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: { 'Content-Type': 'text/plain' }
+          });
         })
       )
   );
@@ -94,8 +119,6 @@ self.addEventListener('fetch', event => {
 messaging.onBackgroundMessage(payload => {
   console.log('[FCM-SW] Message reçu en background:', JSON.stringify(payload));
 
-  // Firebase affiche automatiquement la notification si "notification" est présent
-  // On surcharge ici pour forcer l'icône et les options
   const title = payload.notification?.title || payload.data?.title || 'Express Messenger';
   const body  = payload.notification?.body  || payload.data?.body  || 'Nouveau message';
   const url   = payload.data?.url || '/';
@@ -125,7 +148,6 @@ self.addEventListener('push', event => {
     data = { title: 'GE Messenger', body: event.data?.text() || 'Nouveau message' };
   }
 
-  // Si Firebase gère déjà via onBackgroundMessage, on évite le doublon
   if (data.from && data.notification) return;
 
   event.waitUntil(
