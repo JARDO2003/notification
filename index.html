@@ -118,6 +118,9 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
 .grp-av{width:50px;height:50px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px solid var(--border)}
 .grp-av.anon{background:linear-gradient(135deg,#1a1040,#2d1b69);border-color:var(--purple)}
 
+/* SCREENS WITH BOTTOM NAV */
+#s-home,#s-groups,#s-feed{padding-bottom:0}
+
 /* STORIES */
 .stories-row{display:flex;gap:10px;padding:12px 14px 6px;overflow-x:auto;flex-shrink:0}
 .stories-row::-webkit-scrollbar{display:none}
@@ -933,6 +936,7 @@ function avEl(m,size=50,radius='50%'){
 }
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id)?.classList.add('on');}
+
 function hideNav(){document.getElementById('bnav').classList.add('hidden-nav');}
 function showNav(){document.getElementById('bnav').classList.remove('hidden-nav');}
 
@@ -966,7 +970,9 @@ window.register=async()=>{
   const btn=document.getElementById('jbtn');btn.disabled=true;btn.textContent='Connexion…';
   const uid='u_'+p.replace(/\D/g,'').slice(-9)+'_'+l.toLowerCase().replace(/[^a-z]/g,'').slice(0,4);
   me={uid,firstName:f,lastName:l,phone:p,color:clr(uid),photo:pendPhoto,fullName:`${f} ${l}`};
-  localStorage.setItem('ge_me',JSON.stringify(me));
+  const _meStr=JSON.stringify(me);
+  try{localStorage.setItem('ge_me',_meStr);}catch(e){}
+  try{sessionStorage.setItem('ge_me',_meStr);}catch(e){}
   try{
     await setDoc(doc(db,'ge_members',uid),{uid,firstName:f,lastName:l,phone:p,color:me.color,photo:pendPhoto,fullName:me.fullName,joinedAt:serverTimestamp(),online:true},{merge:true});
     await set(ref(rtdb,`ge_presence/${uid}`),{online:true,name:me.fullName,updatedAt:Date.now()});
@@ -978,8 +984,9 @@ window.register=async()=>{
 function launch(){
   show('s-home');document.getElementById('bnav').classList.add('on');
   renderMyAv();setupPresence();listenMembers();setupFCM();listenSignals();
-  listenFeed();listenStories();listenMyGroups();
+  listenFeed();listenStories();
   toast(`Bienvenue ${me.firstName} ! 🎉`,'success');
+  // Gérer le shortcut PWA (?tab=groups etc.)
   const _pwaTab=new URLSearchParams(location.search).get('tab');
   if(_pwaTab&&['home','groups','feed'].includes(_pwaTab)){
     setTimeout(()=>switchTab(_pwaTab),200);
@@ -998,7 +1005,8 @@ function renderMyAv(){
   if(me.photo)pav.innerHTML=`<img src="${me.photo}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--border)"/>`;
   else pav.innerHTML=`<div style="width:38px;height:38px;border-radius:50%;background:${me.color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff">${ini(me.firstName,me.lastName)}</div>`;
 }
-window.logout=()=>{if(confirm('Se déconnecter ?')){localStorage.removeItem('ge_me');location.reload();}};
+
+window.logout=()=>{if(confirm('Se déconnecter ?')){try{localStorage.removeItem('ge_me');}catch(e){}try{sessionStorage.removeItem('ge_me');}catch(e){}location.reload();}};
 
 // ════ PRESENCE ════
 function setupPresence(){
@@ -1233,7 +1241,10 @@ window.openStoryViewerDirect=(uid,idx)=>{
 
 window.closeProfileModal=(e)=>{if(e.target===document.getElementById('profile-modal'))closeProfileModalDirect();};
 window.closeProfileModalDirect=()=>document.getElementById('profile-modal').classList.remove('on');
-window.startCallFromProfile=async(uid,type)=>{peer=members[uid];if(!peer)return;await openInboxDM(uid);setTimeout(()=>startCall(type),300);};
+
+window.startCallFromProfile=async(uid,type)=>{
+  peer=members[uid];if(!peer)return;await openInboxDM(uid);setTimeout(()=>startCall(type),300);
+};
 window.openPeerProfile=()=>{if(peer&&peer.uid)openProfileModal(peer.uid);};
 
 // ════ GROUPS ════
@@ -1571,7 +1582,15 @@ function checkPermUI(){
   if(Notification.permission==='granted'){banner.className='perm-banner granted';banner.innerHTML='<span class="perm-ic">✅</span><div class="perm-text"><h4>Notifications activées</h4><p>Vous recevrez les alertes normalement</p></div><button class="perm-btn grd">Accordé</button>';document.getElementById('notif-badge').classList.remove('on');}
   else{banner.className='perm-banner';banner.innerHTML='<span class="perm-ic">🔔</span><div class="perm-text"><h4>Notifications désactivées</h4><p>Activez pour recevoir des alertes hors de l\'app</p></div><button class="perm-btn req" onclick="requestNotifPerm()">Activer</button>';document.getElementById('notif-badge').classList.add('on');}
 }
-window.requestNotifPerm=async()=>{if(!('Notification'in window))return;const r=await Notification.requestPermission();if(r==='granted'){toast('Notifications activées ✅','success');checkPermUI();}else toast('Permission refusée','error');};
+window.requestNotifPerm=async()=>{
+  if(!('Notification'in window))return;
+  const r=await Notification.requestPermission();
+  if(r==='granted'){
+    toast('Notifications activées ✅','success');
+    checkPermUI();
+    await _initFCMToken(null);
+  }else toast('Permission refusée','error');
+};
 function syncNSUI(){
   ['master','vib','msg','calls'].forEach(k=>{const el=document.getElementById(`tog-${k}`);if(el)el.classList.toggle('on',!!NS[k]);});
   const vs=document.getElementById('vol-slider');if(vs)vs.value=NS.vol||80;
@@ -1594,59 +1613,53 @@ function sendBrowserNotif(title,body,msgType){
     new Notification(`GE – ${title}`,{
       body:prefix?(prefix+' '+body):body,
       tag:'ge-msg',
-      icon:'/images/d.png',
-      badge:'/images/d.png'
+      icon:'/images/icon-192.png',
+      badge:'/images/icon-192.png'
     });
   }
 }
 
-// ════ FCM — CORRECTION PRINCIPALE ════
-// On enregistre UN SEUL service worker : firebase-messaging-sw.js
-// Et on passe serviceWorkerRegistration à getToken() pour que FCM
-// sache quel SW utiliser → c'est ce qui débloquerait les notifications.
+// ════ FCM ════
+
+// ════ FCM ════
 async function setupFCM(){
   try{
     if(!('serviceWorker'in navigator))return;
-
-    // CORRECTION 1 : enregistrer uniquement firebase-messaging-sw.js
-    // (ne pas enregistrer sw.js séparé — un seul SW sur le scope /)
-    const swReg=await navigator.serviceWorker.register('/firebase-messaging-sw.js',{scope:'/'});
-    console.log('[FCM] SW enregistré :',swReg.scope);
-
-    const p=await Notification.requestPermission();
-    if(p!=='granted'){
-      document.getElementById('notif-badge').classList.add('on');
-      return;
-    }
-    document.getElementById('notif-badge').classList.remove('on');
-
-    // CORRECTION 2 : passer serviceWorkerRegistration à getToken()
-    // Sans ça FCM ne sait pas quel SW utiliser et les notifs en background échouent
-    const tk=await getToken(msg,{
-      vapidKey:VAPID,
-      serviceWorkerRegistration:swReg
-    });
-    if(!tk){console.warn('[FCM] Pas de token');return;}
-    console.log('[FCM] Token OK');
-
-    await updateDoc(doc(db,'ge_members',me.uid),{fcmToken:tk}).catch(()=>{});
-
-    // Écoute messages quand l'app est au premier plan
+    // updateViaCache:'none' evite les blocages ITP/Tracking Prevention Safari
+    const swReg=await navigator.serviceWorker.register('/firebase-messaging-sw.js',{updateViaCache:'none'}).catch(()=>null);
+    if(!swReg)return;
+    await navigator.serviceWorker.ready;
+    // Ecoute les messages en foreground
     onMessage(msg,pl=>{
       const{title,body}=pl.notification||{};
       if(NS.master&&NS.msg){playSound('msg');vibrate([100,50,100]);}
-      toast(`<strong>${title||'Message'}</strong>: ${body||''}`,'info');
+      toast(`<strong>${title}</strong>: ${body}`,'info');
     });
+    // Si deja autorise: init token directement; sinon attendre geste utilisateur
+    if(Notification.permission==='granted'){
+      await _initFCMToken(swReg);
+    }else{
+      document.getElementById('notif-badge').classList.add('on');
+    }
+  }catch(e){console.warn('FCM',e);}
+}
 
-    // Écoute des clics sur notifs depuis le SW
-    navigator.serviceWorker.addEventListener('message',ev=>{
-      if(ev.data?.type==='NOTIFICATION_CLICK'){
-        const tab=new URLSearchParams(new URL(ev.data.url||'/',location.origin).search).get('tab');
-        if(tab&&window.switchTab)window.switchTab(tab);
-      }
-    });
-
-  }catch(e){console.warn('[FCM] Erreur:',e);}
+async function _initFCMToken(swReg,attempt=1){
+  try{
+    const swR=swReg||(await navigator.serviceWorker.ready);
+    const tk=await getToken(msg,{vapidKey:VAPID,serviceWorkerRegistration:swR});
+    if(!tk)throw new Error('Token vide');
+    // Sauvegarde Firebase = source de verite resistante au blocage localStorage
+    await updateDoc(doc(db,'ge_members',me.uid),{fcmToken:tk}).catch(()=>{});
+    window._fcmToken=tk;
+    document.getElementById('notif-badge').classList.remove('on');
+  }catch(e){
+    if(attempt<3){
+      await new Promise(r=>setTimeout(r,1500*attempt));
+      return _initFCMToken(swReg,attempt+1);
+    }
+    console.warn('FCM token echec apres 3 tentatives',e);
+  }
 }
 
 // ════ WEBRTC ════
@@ -1679,8 +1692,8 @@ function showIC(d){
       body:`${caller.fullName} vous appelle`,
       tag:'ge-call',
       renotify:true,
-      icon:'/images/d.png',
-      badge:'/images/d.png'
+      icon:'/images/icon-192.png',
+      badge:'/images/icon-192.png'
     });
   }
   vibrate([500,200,500,200,500]);startRingLoop();
@@ -1708,10 +1721,11 @@ async function initCall(type){
 function showCOv(target,type,stat){
   document.getElementById('cov').classList.add('on');document.getElementById('cname').textContent=target.fullName||target.firstName;document.getElementById('cstat').textContent=stat;document.getElementById('cdur').style.display='none';
   document.getElementById('cbav').innerHTML=target.photo?`<img class="cbav" src="${target.photo}"/>`: `<div class="cbav-i" style="background:${target.color||'#888'}">${ini(target.firstName||'?',target.lastName||'?')}</div>`;
-  document.getElementById('cbg').innerHTML=target.photo?`<img src="${target.photo}"/>`:'';
+  document.getElementById('cbg').innerHTML=target.photo?`<img src="${target.photo}"/>`:'';;
   document.getElementById('vstm').style.display=type==='video'?'block':'none';document.getElementById('ccam').style.display=type==='video'?'flex':'none';
 }
 function startCTmr(){let s=0;document.getElementById('cdur').style.display='block';cTmr=setInterval(()=>{s++;const m=Math.floor(s/60);document.getElementById('cdur').textContent=`${m}:${(s%60).toString().padStart(2,'0')}`;},1000);}
+
 window.endCall=()=>{
   stopRingLoop();
   if(peer)sig(peer.uid,{type:'end'}).catch(()=>{});
@@ -1723,6 +1737,7 @@ window.endCall=()=>{
   if(pc){pc.close();pc=null;}
   vibrate([200]);
 };
+
 window.toggleMute=()=>{if(!locStr)return;isMuted=!isMuted;locStr.getAudioTracks().forEach(t=>t.enabled=!isMuted);const b=document.getElementById('bmute');b.textContent=isMuted?'🔇':'🎙️';b.classList.toggle('on',isMuted);};
 window.toggleSpk=()=>{const v=document.getElementById('rv');v.muted=!v.muted;document.getElementById('bspk').textContent=v.muted?'🔈':'🔊';};
 window.toggleCam=()=>{if(!locStr)return;isCamOff=!isCamOff;locStr.getVideoTracks().forEach(t=>t.enabled=!isCamOff);document.getElementById('bcam').textContent=isCamOff?'📵':'📷';};
@@ -1737,18 +1752,25 @@ window.closeLb=()=>document.getElementById('lb').classList.remove('on');
 
 // ════ PWA ════
 window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();deferredInstallPrompt=e;
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  // Afficher le bouton et la bannière seulement si pas déjà installé
   if(!window.matchMedia('(display-mode: standalone)').matches){
     document.getElementById('pwa-tbar-btn').style.display='flex';
     document.getElementById('pwa-banner').classList.add('on');
   }
 });
+
 window.installPWA=async()=>{
   if(!deferredInstallPrompt){
     const ua=navigator.userAgent.toLowerCase();
-    if(/iphone|ipad|ipod/.test(ua))toast('Sur iOS Safari : appuyez sur 📤 Partager → "Sur l\'écran d\'accueil"','info',7000);
-    else if(/android/.test(ua))toast('Sur Android : appuyez sur ⋮ Menu → "Ajouter à l\'écran d\'accueil"','info',7000);
-    else toast('Ouvrez ce site dans Chrome pour installer l\'application','info',5000);
+    if(/iphone|ipad|ipod/.test(ua)){
+      toast('Sur iOS Safari : appuyez sur 📤 Partager → "Sur l\'écran d\'accueil"','info',7000);
+    }else if(/android/.test(ua)){
+      toast('Sur Android : appuyez sur ⋮ Menu → "Ajouter à l\'écran d\'accueil"','info',7000);
+    }else{
+      toast('Ouvrez ce site dans Chrome pour installer l\'application','info',5000);
+    }
     return;
   }
   deferredInstallPrompt.prompt();
@@ -1760,27 +1782,72 @@ window.installPWA=async()=>{
   }
   deferredInstallPrompt=null;
 };
-window.dismissPWA=()=>document.getElementById('pwa-banner').classList.remove('on');
+
+window.dismissPWA=()=>{
+  document.getElementById('pwa-banner').classList.remove('on');
+};
+
+// ════ SERVICE WORKER PWA ════
+if('serviceWorker'in navigator){
+  window.addEventListener('load',async()=>{
+    try{
+      const reg=await navigator.serviceWorker.register('/sw.js',{scope:'/'});
+      reg.addEventListener('updatefound',()=>{
+        const nw=reg.installing;
+        nw.addEventListener('statechange',()=>{
+          if(nw.state==='installed'&&navigator.serviceWorker.controller){
+            nw.postMessage({type:'SKIP_WAITING'});
+          }
+        });
+      });
+      navigator.serviceWorker.addEventListener('message',ev=>{
+        if(ev.data?.type==='NOTIFICATION_CLICK'){
+          const tab=new URLSearchParams(new URL(ev.data.url||'/',location.origin).search).get('tab');
+          if(tab&&window.switchTab)window.switchTab(tab);
+        }
+      });
+    }catch(e){console.warn('[SW]',e);}
+  });
+}
 
 // ════ BOOT ════
 loadNS();
 
-// Masquer bannière PWA si déjà installée
+// Détection mode standalone (PWA déjà installée)
 if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true){
   document.getElementById('pwa-tbar-btn').style.display='none';
   document.getElementById('pwa-banner').style.setProperty('display','none','important');
 }
 
-const sv=localStorage.getItem('ge_me');
-if(sv){
+loadNS();
+
+// Detection mode standalone (PWA deja installee)
+if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true){
+  document.getElementById('pwa-tbar-btn').style.display='none';
+  document.getElementById('pwa-banner').style.setProperty('display','none','important');
+}
+
+// ════ BOOT resilient: localStorage + sessionStorage fallback ════
+let _savedMe=null;
+try{_savedMe=localStorage.getItem('ge_me');}catch(e){}
+if(!_savedMe){try{_savedMe=sessionStorage.getItem('ge_me');}catch(e){}}
+
+if(_savedMe){
   try{
-    me=JSON.parse(sv);pendPhoto=me.photo;
+    me=JSON.parse(_savedMe);pendPhoto=me.photo;
+    // Re-sauvegarder dans les deux storages pour maximiser la persistance
+    try{localStorage.setItem('ge_me',_savedMe);}catch(e){}
+    try{sessionStorage.setItem('ge_me',_savedMe);}catch(e){}
     setTimeout(async()=>{
       await setDoc(doc(db,'ge_members',me.uid),{online:true,lastSeen:serverTimestamp()},{merge:true}).catch(()=>{});
       document.getElementById('ld').classList.add('hide');
-      launch();
+      launch();listenMyGroups();
     },700);
-  }catch(e){localStorage.removeItem('ge_me');boot();}
+  }catch(e){
+    try{localStorage.removeItem('ge_me');}catch(_){}
+    try{sessionStorage.removeItem('ge_me');}catch(_){}
+    boot();
+  }
 }else boot();
 function boot(){document.getElementById('ld').classList.add('hide');show('s-reg');}
 </script>
