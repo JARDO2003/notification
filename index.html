@@ -1788,10 +1788,12 @@ window.dismissPWA=()=>{
 };
 
 // ════ SERVICE WORKER PWA ════
+// Un seul SW : firebase-messaging-sw.js gère à la fois le cache PWA et les notifications FCM
+// (evite l'erreur 404 sur /sw.js qui n'existe pas)
 if('serviceWorker'in navigator){
   window.addEventListener('load',async()=>{
     try{
-      const reg=await navigator.serviceWorker.register('/sw.js',{scope:'/'});
+      const reg=await navigator.serviceWorker.register('/firebase-messaging-sw.js',{scope:'/',updateViaCache:'none'});
       reg.addEventListener('updatefound',()=>{
         const nw=reg.installing;
         nw.addEventListener('statechange',()=>{
