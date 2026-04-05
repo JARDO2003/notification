@@ -5,11 +5,7 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/images/icon-192.png',
-  '/images/icon-512.png',
-  '/images/icon-192-maskable.png',
-  '/images/icon-512-maskable.png',
-  '/images/apple-touch-icon.png',
+  '/images/d.png',
 ];
 
 // ── Install : mise en cache des assets statiques ──
@@ -94,8 +90,8 @@ self.addEventListener('push', event => {
   const title = data.title || 'GE Messenger';
   const options = {
     body: data.body || 'Vous avez un nouveau message',
-    icon: '/images/icon-192.png',
-    badge: '/images/icon-192.png',
+    icon: '/images/d.png',
+    badge: '/images/d.png',
     tag: data.tag || 'ge-notif',
     renotify: true,
     vibrate: [200, 100, 200],
