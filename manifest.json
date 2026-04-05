@@ -1,6 +1,6 @@
 {
-  "name": "GE Messenger",
-  "short_name": "GE Msg",
+  "name": "Express Messenger",
+  "short_name": "Express Messenger",
   "description": "Groupe Express – Messagerie sécurisée",
   "start_url": "/",
   "id": "/",
