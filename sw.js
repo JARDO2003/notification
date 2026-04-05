@@ -1,6 +1,27 @@
-// GE Messenger Service Worker v4
-// PWA cache + push notifications (sans Firebase — géré dans firebase-messaging-sw.js)
-const CACHE_NAME = 'ge-messenger-v4';
+// ============================================================
+// GE Messenger — Service Worker unifié v5
+// Firebase Messaging + PWA Cache + Push Notifications
+// DOIT être à la racine du domaine : /sw.js
+// ============================================================
+
+importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
+
+// ── Firebase Init ──
+firebase.initializeApp({
+  apiKey: "AIzaSyCPGgtXoDUycykLaTSee0S0yY0tkeJpqKI",
+  authDomain: "data-com-a94a8.firebaseapp.com",
+  databaseURL: "https://data-com-a94a8-default-rtdb.firebaseio.com",
+  projectId: "data-com-a94a8",
+  storageBucket: "data-com-a94a8.firebasestorage.app",
+  messagingSenderId: "276904640935",
+  appId: "1:276904640935:web:9cd805aeba6c34c767f682"
+});
+
+const messaging = firebase.messaging();
+
+// ── Cache ──
+const CACHE_NAME = 'ge-messenger-v5';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -8,36 +29,35 @@ const STATIC_ASSETS = [
   '/images/d.png',
 ];
 
-// ── Install : mise en cache des assets statiques ──
+// ── Install ──
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_ASSETS).catch(err => {
-        console.warn('[SW] Certains assets non cachés:', err);
-      });
+      return Promise.allSettled(
+        STATIC_ASSETS.map(url => cache.add(url).catch(err =>
+          console.warn('[SW] Asset non caché:', url, err)
+        ))
+      );
     })
   );
 });
 
-// ── Activate : suppression des anciens caches ──
+// ── Activate ──
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
       )
     ).then(() => self.clients.claim())
   );
 });
 
-// ── Fetch : Network First avec fallback cache ──
+// ── Fetch : Network First + fallback Cache ──
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Ne pas intercepter les requêtes Firebase, Cloudinary, etc.
   if (
     event.request.method !== 'GET' ||
     url.hostname.includes('firebaseio.com') ||
@@ -46,66 +66,72 @@ self.addEventListener('fetch', event => {
     url.hostname.includes('googleapis.com') ||
     url.hostname.includes('gstatic.com') ||
     url.protocol === 'chrome-extension:'
-  ) {
-    return;
-  }
+  ) return;
 
-  // Stratégie : Network First, fallback Cache
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // Mettre en cache uniquement les réponses valides
         if (response && response.status === 200 && response.type !== 'opaque') {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseClone);
-          });
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
       })
-      .catch(() => {
-        return caches.match(event.request).then(cached => {
+      .catch(() =>
+        caches.match(event.request).then(cached => {
           if (cached) return cached;
-          // Fallback pour les pages HTML
           if (event.request.headers.get('accept')?.includes('text/html')) {
             return caches.match('/index.html');
           }
-        });
-      })
+        })
+      )
   );
 });
 
-// ── Push Notifications (background) ──
+// ── Notifications Firebase (background) ──
+messaging.onBackgroundMessage(payload => {
+  console.log('[SW] Message Firebase reçu en arrière-plan:', payload);
+
+  const title = payload.notification?.title || 'Express Messenger';
+  const body  = payload.notification?.body  || 'Nouveau message';
+
+  return self.registration.showNotification(title, {
+    body,
+    icon:     '/images/d.png',
+    badge:    '/images/d.png',
+    tag:      'ge-bg-msg',
+    renotify: true,
+    vibrate:  [150, 80, 150],
+    data:     { url: payload.data?.url || '/', ...payload.data }
+  });
+});
+
+// ── Notifications Push natives (fallback) ──
 self.addEventListener('push', event => {
   let data = {};
-  try {
-    data = event.data ? event.data.json() : {};
-  } catch (_) {
-    data = {
-      title: 'GE Messenger',
-      body: event.data?.text() || 'Nouveau message'
-    };
+  try { data = event.data?.json() || {}; } catch (_) {
+    data = { title: 'GE Messenger', body: event.data?.text() || 'Nouveau message' };
   }
 
   const title = data.title || 'GE Messenger';
-  const options = {
-    body: data.body || 'Vous avez un nouveau message',
-    icon: '/images/d.png',
-    badge: '/images/d.png',
-    tag: data.tag || 'ge-notif',
-    renotify: true,
-    vibrate: [200, 100, 200],
-    data: { url: data.url || '/', ...data.data },
-    actions: [
-      { action: 'open',    title: '📩 Ouvrir'  },
-      { action: 'dismiss', title: '✕ Ignorer'  }
-    ]
-  };
-
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body:     data.body || 'Vous avez un nouveau message',
+      icon:     '/images/d.png',
+      badge:    '/images/d.png',
+      tag:      data.tag || 'ge-notif',
+      renotify: true,
+      vibrate:  [200, 100, 200],
+      data:     { url: data.url || '/', ...data.data },
+      actions: [
+        { action: 'open',    title: '📩 Ouvrir'  },
+        { action: 'dismiss', title: '✕ Ignorer'  }
+      ]
+    })
+  );
 });
 
-// ── Notification click ──
+// ── Clic sur notification ──
 self.addEventListener('notificationclick', event => {
   event.notification.close();
   if (event.action === 'dismiss') return;
@@ -114,14 +140,12 @@ self.addEventListener('notificationclick', event => {
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
-      // Cherche une fenêtre déjà ouverte
       for (const client of clientList) {
         if (client.url.startsWith(self.location.origin) && 'focus' in client) {
           client.postMessage({ type: 'NOTIFICATION_CLICK', url: targetUrl });
           return client.focus();
         }
       }
-      // Ouvre une nouvelle fenêtre
       return clients.openWindow(targetUrl);
     })
   );
@@ -129,14 +153,10 @@ self.addEventListener('notificationclick', event => {
 
 // ── Message depuis la page ──
 self.addEventListener('message', event => {
-  if (event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 // ── Background Sync ──
 self.addEventListener('sync', event => {
-  if (event.tag === 'ge-sync') {
-    event.waitUntil(Promise.resolve());
-  }
+  if (event.tag === 'ge-sync') event.waitUntil(Promise.resolve());
 });
