@@ -118,9 +118,6 @@ html,body{height:100%;overflow:hidden;font-family:'Sora',sans-serif;background:v
 .grp-av{width:50px;height:50px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px solid var(--border)}
 .grp-av.anon{background:linear-gradient(135deg,#1a1040,#2d1b69);border-color:var(--purple)}
 
-/* SCREENS WITH BOTTOM NAV */
-#s-home,#s-groups,#s-feed{padding-bottom:0}
-
 /* STORIES */
 .stories-row{display:flex;gap:10px;padding:12px 14px 6px;overflow-x:auto;flex-shrink:0}
 .stories-row::-webkit-scrollbar{display:none}
@@ -936,7 +933,6 @@ function avEl(m,size=50,radius='50%'){
 }
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id)?.classList.add('on');}
-
 function hideNav(){document.getElementById('bnav').classList.add('hidden-nav');}
 function showNav(){document.getElementById('bnav').classList.remove('hidden-nav');}
 
@@ -982,9 +978,8 @@ window.register=async()=>{
 function launch(){
   show('s-home');document.getElementById('bnav').classList.add('on');
   renderMyAv();setupPresence();listenMembers();setupFCM();listenSignals();
-  listenFeed();listenStories();
+  listenFeed();listenStories();listenMyGroups();
   toast(`Bienvenue ${me.firstName} ! 🎉`,'success');
-  // Gérer le shortcut PWA (?tab=groups etc.)
   const _pwaTab=new URLSearchParams(location.search).get('tab');
   if(_pwaTab&&['home','groups','feed'].includes(_pwaTab)){
     setTimeout(()=>switchTab(_pwaTab),200);
@@ -1003,7 +998,6 @@ function renderMyAv(){
   if(me.photo)pav.innerHTML=`<img src="${me.photo}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--border)"/>`;
   else pav.innerHTML=`<div style="width:38px;height:38px;border-radius:50%;background:${me.color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff">${ini(me.firstName,me.lastName)}</div>`;
 }
-
 window.logout=()=>{if(confirm('Se déconnecter ?')){localStorage.removeItem('ge_me');location.reload();}};
 
 // ════ PRESENCE ════
@@ -1239,10 +1233,7 @@ window.openStoryViewerDirect=(uid,idx)=>{
 
 window.closeProfileModal=(e)=>{if(e.target===document.getElementById('profile-modal'))closeProfileModalDirect();};
 window.closeProfileModalDirect=()=>document.getElementById('profile-modal').classList.remove('on');
-
-window.startCallFromProfile=async(uid,type)=>{
-  peer=members[uid];if(!peer)return;await openInboxDM(uid);setTimeout(()=>startCall(type),300);
-};
+window.startCallFromProfile=async(uid,type)=>{peer=members[uid];if(!peer)return;await openInboxDM(uid);setTimeout(()=>startCall(type),300);};
 window.openPeerProfile=()=>{if(peer&&peer.uid)openProfileModal(peer.uid);};
 
 // ════ GROUPS ════
@@ -1603,23 +1594,59 @@ function sendBrowserNotif(title,body,msgType){
     new Notification(`GE – ${title}`,{
       body:prefix?(prefix+' '+body):body,
       tag:'ge-msg',
-      icon:'/images/icon-192.png',
-      badge:'/images/icon-192.png'
+      icon:'/images/d.png',
+      badge:'/images/d.png'
     });
   }
 }
 
-// ════ FCM ════
+// ════ FCM — CORRECTION PRINCIPALE ════
+// On enregistre UN SEUL service worker : firebase-messaging-sw.js
+// Et on passe serviceWorkerRegistration à getToken() pour que FCM
+// sache quel SW utiliser → c'est ce qui débloquerait les notifications.
 async function setupFCM(){
   try{
     if(!('serviceWorker'in navigator))return;
-    await navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(()=>{});
-    const p=await Notification.requestPermission();if(p!=='granted'){document.getElementById('notif-badge').classList.add('on');return;}
+
+    // CORRECTION 1 : enregistrer uniquement firebase-messaging-sw.js
+    // (ne pas enregistrer sw.js séparé — un seul SW sur le scope /)
+    const swReg=await navigator.serviceWorker.register('/firebase-messaging-sw.js',{scope:'/'});
+    console.log('[FCM] SW enregistré :',swReg.scope);
+
+    const p=await Notification.requestPermission();
+    if(p!=='granted'){
+      document.getElementById('notif-badge').classList.add('on');
+      return;
+    }
     document.getElementById('notif-badge').classList.remove('on');
-    const tk=await getToken(msg,{vapidKey:VAPID});if(!tk)return;
+
+    // CORRECTION 2 : passer serviceWorkerRegistration à getToken()
+    // Sans ça FCM ne sait pas quel SW utiliser et les notifs en background échouent
+    const tk=await getToken(msg,{
+      vapidKey:VAPID,
+      serviceWorkerRegistration:swReg
+    });
+    if(!tk){console.warn('[FCM] Pas de token');return;}
+    console.log('[FCM] Token OK');
+
     await updateDoc(doc(db,'ge_members',me.uid),{fcmToken:tk}).catch(()=>{});
-    onMessage(msg,pl=>{const{title,body}=pl.notification||{};if(NS.master&&NS.msg){playSound('msg');vibrate([100,50,100]);}toast(`<strong>${title}</strong>: ${body}`,'info');});
-  }catch(e){console.warn('FCM',e);}
+
+    // Écoute messages quand l'app est au premier plan
+    onMessage(msg,pl=>{
+      const{title,body}=pl.notification||{};
+      if(NS.master&&NS.msg){playSound('msg');vibrate([100,50,100]);}
+      toast(`<strong>${title||'Message'}</strong>: ${body||''}`,'info');
+    });
+
+    // Écoute des clics sur notifs depuis le SW
+    navigator.serviceWorker.addEventListener('message',ev=>{
+      if(ev.data?.type==='NOTIFICATION_CLICK'){
+        const tab=new URLSearchParams(new URL(ev.data.url||'/',location.origin).search).get('tab');
+        if(tab&&window.switchTab)window.switchTab(tab);
+      }
+    });
+
+  }catch(e){console.warn('[FCM] Erreur:',e);}
 }
 
 // ════ WEBRTC ════
@@ -1652,8 +1679,8 @@ function showIC(d){
       body:`${caller.fullName} vous appelle`,
       tag:'ge-call',
       renotify:true,
-      icon:'/images/icon-192.png',
-      badge:'/images/icon-192.png'
+      icon:'/images/d.png',
+      badge:'/images/d.png'
     });
   }
   vibrate([500,200,500,200,500]);startRingLoop();
@@ -1681,11 +1708,10 @@ async function initCall(type){
 function showCOv(target,type,stat){
   document.getElementById('cov').classList.add('on');document.getElementById('cname').textContent=target.fullName||target.firstName;document.getElementById('cstat').textContent=stat;document.getElementById('cdur').style.display='none';
   document.getElementById('cbav').innerHTML=target.photo?`<img class="cbav" src="${target.photo}"/>`: `<div class="cbav-i" style="background:${target.color||'#888'}">${ini(target.firstName||'?',target.lastName||'?')}</div>`;
-  document.getElementById('cbg').innerHTML=target.photo?`<img src="${target.photo}"/>`:'';;
+  document.getElementById('cbg').innerHTML=target.photo?`<img src="${target.photo}"/>`:'';
   document.getElementById('vstm').style.display=type==='video'?'block':'none';document.getElementById('ccam').style.display=type==='video'?'flex':'none';
 }
 function startCTmr(){let s=0;document.getElementById('cdur').style.display='block';cTmr=setInterval(()=>{s++;const m=Math.floor(s/60);document.getElementById('cdur').textContent=`${m}:${(s%60).toString().padStart(2,'0')}`;},1000);}
-
 window.endCall=()=>{
   stopRingLoop();
   if(peer)sig(peer.uid,{type:'end'}).catch(()=>{});
@@ -1697,7 +1723,6 @@ window.endCall=()=>{
   if(pc){pc.close();pc=null;}
   vibrate([200]);
 };
-
 window.toggleMute=()=>{if(!locStr)return;isMuted=!isMuted;locStr.getAudioTracks().forEach(t=>t.enabled=!isMuted);const b=document.getElementById('bmute');b.textContent=isMuted?'🔇':'🎙️';b.classList.toggle('on',isMuted);};
 window.toggleSpk=()=>{const v=document.getElementById('rv');v.muted=!v.muted;document.getElementById('bspk').textContent=v.muted?'🔈':'🔊';};
 window.toggleCam=()=>{if(!locStr)return;isCamOff=!isCamOff;locStr.getVideoTracks().forEach(t=>t.enabled=!isCamOff);document.getElementById('bcam').textContent=isCamOff?'📵':'📷';};
@@ -1712,25 +1737,18 @@ window.closeLb=()=>document.getElementById('lb').classList.remove('on');
 
 // ════ PWA ════
 window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();
-  deferredInstallPrompt=e;
-  // Afficher le bouton et la bannière seulement si pas déjà installé
+  e.preventDefault();deferredInstallPrompt=e;
   if(!window.matchMedia('(display-mode: standalone)').matches){
     document.getElementById('pwa-tbar-btn').style.display='flex';
     document.getElementById('pwa-banner').classList.add('on');
   }
 });
-
 window.installPWA=async()=>{
   if(!deferredInstallPrompt){
     const ua=navigator.userAgent.toLowerCase();
-    if(/iphone|ipad|ipod/.test(ua)){
-      toast('Sur iOS Safari : appuyez sur 📤 Partager → "Sur l\'écran d\'accueil"','info',7000);
-    }else if(/android/.test(ua)){
-      toast('Sur Android : appuyez sur ⋮ Menu → "Ajouter à l\'écran d\'accueil"','info',7000);
-    }else{
-      toast('Ouvrez ce site dans Chrome pour installer l\'application','info',5000);
-    }
+    if(/iphone|ipad|ipod/.test(ua))toast('Sur iOS Safari : appuyez sur 📤 Partager → "Sur l\'écran d\'accueil"','info',7000);
+    else if(/android/.test(ua))toast('Sur Android : appuyez sur ⋮ Menu → "Ajouter à l\'écran d\'accueil"','info',7000);
+    else toast('Ouvrez ce site dans Chrome pour installer l\'application','info',5000);
     return;
   }
   deferredInstallPrompt.prompt();
@@ -1742,38 +1760,12 @@ window.installPWA=async()=>{
   }
   deferredInstallPrompt=null;
 };
-
-window.dismissPWA=()=>{
-  document.getElementById('pwa-banner').classList.remove('on');
-};
-
-// ════ SERVICE WORKER PWA ════
-if('serviceWorker'in navigator){
-  window.addEventListener('load',async()=>{
-    try{
-      const reg=await navigator.serviceWorker.register('/sw.js',{scope:'/'});
-      reg.addEventListener('updatefound',()=>{
-        const nw=reg.installing;
-        nw.addEventListener('statechange',()=>{
-          if(nw.state==='installed'&&navigator.serviceWorker.controller){
-            nw.postMessage({type:'SKIP_WAITING'});
-          }
-        });
-      });
-      navigator.serviceWorker.addEventListener('message',ev=>{
-        if(ev.data?.type==='NOTIFICATION_CLICK'){
-          const tab=new URLSearchParams(new URL(ev.data.url||'/',location.origin).search).get('tab');
-          if(tab&&window.switchTab)window.switchTab(tab);
-        }
-      });
-    }catch(e){console.warn('[SW]',e);}
-  });
-}
+window.dismissPWA=()=>document.getElementById('pwa-banner').classList.remove('on');
 
 // ════ BOOT ════
 loadNS();
 
-// Détection mode standalone (PWA déjà installée)
+// Masquer bannière PWA si déjà installée
 if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true){
   document.getElementById('pwa-tbar-btn').style.display='none';
   document.getElementById('pwa-banner').style.setProperty('display','none','important');
@@ -1786,7 +1778,7 @@ if(sv){
     setTimeout(async()=>{
       await setDoc(doc(db,'ge_members',me.uid),{online:true,lastSeen:serverTimestamp()},{merge:true}).catch(()=>{});
       document.getElementById('ld').classList.add('hide');
-      launch();listenMyGroups();
+      launch();
     },700);
   }catch(e){localStorage.removeItem('ge_me');boot();}
 }else boot();
