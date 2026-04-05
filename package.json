@@ -1,8 +1,25 @@
 {
-  "name": "fcm-notification-app",
-  "version": "2.0.0",
-  "description": "FCM Web Notifications — Vercel Serverless",
+  "name": "ge-messenger-notifications",
+  "version": "3.0.0",
+  "description": "GE Messenger - Messagerie avec notifications push FCM",
+  "main": "sender.js",
+  "scripts": {
+    "start": "node sender.js",
+    "dev": "vercel dev"
+  },
   "dependencies": {
     "firebase-admin": "^12.0.0"
-  }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "messenger",
+    "pwa",
+    "notifications",
+    "fcm",
+    "firebase"
+  ],
+  "author": "Groupe Express",
+  "license": "MIT"
 }
