@@ -2,21 +2,67 @@
   "name": "GE Messenger",
   "short_name": "GE Msg",
   "description": "Groupe Express – Messagerie sécurisée",
-  "start_url": "/index.html",
+  "start_url": "/",
+  "id": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#080b12",
   "theme_color": "#080b12",
   "orientation": "portrait-primary",
   "icons": [
-    { "src": "images/n.jpg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any maskable" },
-    { "src": "images/n.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any maskable" }
+    {
+      "src": "images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "images/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "images/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "images/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "GE Messenger – Messages"
+    }
   ],
   "categories": ["communication", "social"],
   "lang": "fr",
   "dir": "ltr",
   "scope": "/",
   "shortcuts": [
-    { "name": "Messages", "url": "/index.html#home", "description": "Voir mes messages" },
-    { "name": "Groupes", "url": "/index.html#groups", "description": "Mes groupes" }
-  ]
+    {
+      "name": "Messages",
+      "short_name": "Messages",
+      "url": "/?tab=home",
+      "description": "Voir mes messages",
+      "icons": [{ "src": "images/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Groupes",
+      "short_name": "Groupes",
+      "url": "/?tab=groups",
+      "description": "Mes groupes",
+      "icons": [{ "src": "images/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false
 }
