@@ -1,7 +1,7 @@
 {
   "name": "Express Messenger",
   "short_name": "Express Messenger",
-  "description": "Groupe Express – Messagerie sécurisée",
+  "description": "Groupe Express – Messagerie securisee avec notifications push",
   "start_url": "/",
   "id": "/",
   "display": "standalone",
@@ -61,6 +61,13 @@
       "short_name": "Groupes",
       "url": "/?tab=groups",
       "description": "Mes groupes",
+      "icons": [{ "src": "images/d.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Fil d'actu",
+      "short_name": "Actu",
+      "url": "/?tab=feed",
+      "description": "Nouvelles publications",
       "icons": [{ "src": "images/d.png", "sizes": "192x192" }]
     }
   ],
