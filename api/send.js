@@ -1,6 +1,5 @@
 const admin = require('firebase-admin');
 
-// Init une seule fois (réutilisé entre les invocations Vercel)
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -20,7 +19,6 @@ if (!admin.apps.length) {
 const messaging = admin.messaging();
 
 module.exports = async (req, res) => {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -35,21 +33,30 @@ module.exports = async (req, res) => {
 
   const db = admin.database();
 
-  // Envoi multicast
   const message = {
     tokens,
     notification: { title, body },
     data: data || {},
     webpush: {
       headers: { Urgency: 'high' },
-      notification: { title, body, icon: '/icon.png', requireInteraction: true },
+      notification: {
+        title,
+        body,
+        icon: '/images/d.png',   // ✅ Corrigé
+        badge: '/images/d.png',  // ✅ Corrigé
+        requireInteraction: true,
+        vibrate: [150, 80, 150],
+      },
+      fcmOptions: {
+        link: data?.url || '/',
+      },
     },
   };
 
   try {
     const result = await messaging.sendEachForMulticast(message);
 
-    // Supprimer les tokens invalides de la DB
+    // Supprimer les tokens invalides
     const invalidTokens = [];
     result.responses.forEach((r, i) => {
       if (!r.success && (
@@ -61,11 +68,11 @@ module.exports = async (req, res) => {
     });
 
     if (invalidTokens.length) {
-      const snapshot = await db.ref('fcm_tokens').once('value');
+      const snapshot = await db.ref('ge_members').once('value');
       const all = snapshot.val() || {};
       for (const [key, val] of Object.entries(all)) {
-        if (invalidTokens.includes(val.token)) {
-          await db.ref(`fcm_tokens/${key}`).remove();
+        if (invalidTokens.includes(val.fcmToken)) {
+          await db.ref(`ge_members/${key}/fcmToken`).remove();
         }
       }
     }
