@@ -1,22 +1,20 @@
 {
-  "name": "GE Messenger",
-  "short_name": "GE Msg",
-  "description": "Groupe Express – Messagerie sécurisée",
-  "start_url": "/index.html",
+  "name": "Push Demo",
+  "short_name": "PushDemo",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#080b12",
-  "theme_color": "#080b12",
-  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "icons": [
-    { "src": "images/n.jpg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any maskable" },
-    { "src": "images/n.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any maskable" }
-  ],
-  "categories": ["communication", "social"],
-  "lang": "fr",
-  "dir": "ltr",
-  "scope": "/",
-  "shortcuts": [
-    { "name": "Messages", "url": "/index.html#home", "description": "Voir mes messages" },
-    { "name": "Groupes", "url": "/index.html#groups", "description": "Mes groupes" }
+    {
+      "src": "image/u.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "image/u.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }
