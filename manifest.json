@@ -11,25 +11,25 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "images/icon-192.png",
+      "src": "images/d.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "images/icon-192-maskable.png",
+      "src": "images/d.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "images/icon-512.png",
+      "src": "images/d.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "images/icon-512-maskable.png",
+      "src": "images/d.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -37,7 +37,7 @@
   ],
   "screenshots": [
     {
-      "src": "images/screenshot-mobile.png",
+      "src": "images/d.png",
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
@@ -54,14 +54,14 @@
       "short_name": "Messages",
       "url": "/?tab=home",
       "description": "Voir mes messages",
-      "icons": [{ "src": "images/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "images/d.png", "sizes": "192x192" }]
     },
     {
       "name": "Groupes",
       "short_name": "Groupes",
       "url": "/?tab=groups",
       "description": "Mes groupes",
-      "icons": [{ "src": "images/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "images/d.png", "sizes": "192x192" }]
     }
   ],
   "prefer_related_applications": false
