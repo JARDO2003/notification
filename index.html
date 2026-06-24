@@ -111,6 +111,11 @@
       box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
 
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     .btn-danger {
       background: #ff6b6b;
       color: white;
@@ -120,15 +125,6 @@
 
     .btn-danger:hover {
       background: #ff5252;
-    }
-
-    .btn-success {
-      background: #51cf66;
-      color: white;
-    }
-
-    .btn-success:hover {
-      background: #40c057;
     }
 
     .message {
@@ -276,6 +272,16 @@
       100% { transform: rotate(360deg); }
     }
 
+    .warning-box {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 20px;
+      color: #856404;
+      font-size: 14px;
+    }
+
     @media (max-width: 768px) {
       .header h1 {
         font-size: 22px;
@@ -306,14 +312,19 @@
     </div>
 
     <div class="content">
-      <!-- Statut Firebase -->
+      <!-- Statut -->
       <div id="status" class="status">
         <div class="status-dot offline"></div>
-        <span class="status-text">Connexion à Firebase...</span>
+        <span class="status-text">Connexion à Firestore...</span>
       </div>
 
       <!-- Messages -->
       <div id="message" class="message"></div>
+
+      <!-- Avertissement -->
+      <div class="warning-box">
+        ⚠️ Assurez-vous que Firestore est en <strong>"Mode test"</strong> pour que cela fonctionne!
+      </div>
 
       <!-- Section Ajouter une clé -->
       <div class="section">
@@ -325,7 +336,7 @@
           <p class="help-text">📌 Obtenez votre clé sur: <a href="https://console.groq.com/" target="_blank">console.groq.com</a></p>
         </div>
 
-        <button class="btn btn-primary" onclick="addGroqKey()">✅ Ajouter la clé</button>
+        <button class="btn btn-primary" id="addBtn" onclick="addGroqKey()">✅ Ajouter la clé</button>
       </div>
 
       <!-- Section Liste des clés -->
@@ -351,31 +362,135 @@
           <p class="help-text">Les modèles seront utilisés en rotation</p>
         </div>
 
-        <button class="btn btn-primary" onclick="saveModels()">💾 Sauvegarder les modèles</button>
+        <button class="btn btn-primary" id="saveModelsBtn" onclick="saveModels()">💾 Sauvegarder les modèles</button>
       </div>
     </div>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
-
   <script>
-    // Configuration Firebase
-    const firebaseConfig = {
-      apiKey: 'AIzaSyCPGgtXoDUycykLaTSee0S0yY0tkeJpqKI',
-      authDomain: 'data-com-a94a8.firebaseapp.com',
-      databaseURL: 'https://data-com-a94a8-default-rtdb.firebaseio.com',
-      projectId: 'data-com-a94a8',
-      storageBucket: 'data-com-a94a8.appspot.com',
-      messagingSenderId: '276904640935',
-      appId: '1:276904640935:web:9cd805aeba6c34c767f682',
-      measurementId: 'G-FYQCWY5G4S',
-    };
+    // Configuration Firestore
+    const PROJECT_ID = 'data-com-a94a8';
+    const API_KEY = 'AIzaSyCPGgtXoDUycykLaTSee0S0yY0tkeJpqKI';
+    const BASE_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
-    // Initialiser Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    // ══════════════════════════════════════════
+    // REQUÊTES FIRESTORE
+    // ══════════════════════════════════════════
+
+    async function getDocument(collectionId, documentId) {
+      try {
+        const url = `${BASE_URL}/${collectionId}/${documentId}?key=${API_KEY}`;
+        const response = await fetch(url);
+        
+        if (response.status === 404) {
+          return null;
+        }
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data.fields || null;
+      } catch (error) {
+        console.error('Erreur getDocument:', error);
+        throw error;
+      }
+    }
+
+    async function setDocument(collectionId, documentId, fields) {
+      try {
+        const url = `${BASE_URL}/${collectionId}/${documentId}?key=${API_KEY}`;
+        
+        const firestoreFields = {};
+        for (const [key, value] of Object.entries(fields)) {
+          firestoreFields[key] = formatValue(value);
+        }
+
+        const response = await fetch(url, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fields: firestoreFields
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Erreur setDocument:', error);
+        throw error;
+      }
+    }
+
+    function formatValue(value) {
+      if (Array.isArray(value)) {
+        return {
+          arrayValue: {
+            values: value.map(v => {
+              if (typeof v === 'object') {
+                const mapFields = {};
+                for (const [k, val] of Object.entries(v)) {
+                  mapFields[k] = formatValue(val);
+                }
+                return { mapValue: { fields: mapFields } };
+              }
+              return formatValue(v);
+            })
+          }
+        };
+      }
+
+      if (typeof value === 'object' && value !== null) {
+        const mapFields = {};
+        for (const [k, v] of Object.entries(value)) {
+          mapFields[k] = formatValue(v);
+        }
+        return { mapValue: { fields: mapFields } };
+      }
+
+      if (typeof value === 'string') {
+        return { stringValue: value };
+      }
+
+      if (typeof value === 'boolean') {
+        return { booleanValue: value };
+      }
+
+      if (typeof value === 'number') {
+        return { integerValue: String(value) };
+      }
+
+      return { nullValue: null };
+    }
+
+    function parseValue(firestoreValue) {
+      if (firestoreValue.stringValue !== undefined) {
+        return firestoreValue.stringValue;
+      }
+      if (firestoreValue.integerValue !== undefined) {
+        return parseInt(firestoreValue.integerValue);
+      }
+      if (firestoreValue.booleanValue !== undefined) {
+        return firestoreValue.booleanValue;
+      }
+      if (firestoreValue.arrayValue !== undefined) {
+        return firestoreValue.arrayValue.values.map(parseValue);
+      }
+      if (firestoreValue.mapValue !== undefined) {
+        const result = {};
+        for (const [key, val] of Object.entries(firestoreValue.mapValue.fields)) {
+          result[key] = parseValue(val);
+        }
+        return result;
+      }
+      return null;
+    }
 
     // ══════════════════════════════════════════
     // GESTION DES CLÉS GROQ
@@ -395,18 +510,20 @@
         return;
       }
 
-      try {
-        const docRef = db.collection('server_config').doc('groq_keys');
-        const doc = await docRef.get();
+      setLoading(true);
 
+      try {
+        let data = await getDocument('server_config', 'groq_keys');
         let currentKeys = [];
-        if (doc.exists) {
-          currentKeys = doc.data().keys || [];
+
+        if (data && data.keys) {
+          currentKeys = parseValue(data.keys);
         }
 
         // Vérifier si la clé existe déjà
         if (currentKeys.some(k => k.value === newKey)) {
           showMessage('⚠️ Cette clé est déjà ajoutée', 'error');
+          setLoading(false);
           return;
         }
 
@@ -416,14 +533,15 @@
           addedAt: new Date().toISOString()
         });
 
-        await docRef.set({ keys: currentKeys }, { merge: true });
+        await setDocument('server_config', 'groq_keys', { keys: currentKeys });
 
         showMessage('✅ Clé ajoutée avec succès!', 'success');
         keyInput.value = '';
         loadGroqKeys();
       } catch (error) {
         showMessage(`❌ Erreur: ${error.message}`, 'error');
-        console.error(error);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -432,53 +550,59 @@
         return;
       }
 
-      try {
-        const docRef = db.collection('server_config').doc('groq_keys');
-        const doc = await docRef.get();
+      setLoading(true);
 
-        if (doc.exists) {
-          let keys = doc.data().keys || [];
+      try {
+        const data = await getDocument('server_config', 'groq_keys');
+        if (data && data.keys) {
+          let keys = parseValue(data.keys);
           keys.splice(index, 1);
-          await docRef.set({ keys }, { merge: true });
+          await setDocument('server_config', 'groq_keys', { keys });
           showMessage('✅ Clé supprimée avec succès!', 'success');
           loadGroqKeys();
         }
       } catch (error) {
         showMessage(`❌ Erreur: ${error.message}`, 'error');
-        console.error(error);
+      } finally {
+        setLoading(false);
       }
     }
 
     async function loadGroqKeys() {
       try {
-        const doc = await db.collection('server_config').doc('groq_keys').get();
+        const data = await getDocument('server_config', 'groq_keys');
         const keysList = document.getElementById('keysList');
 
-        if (doc.exists && doc.data().keys && doc.data().keys.length > 0) {
-          const keys = doc.data().keys;
+        if (data && data.keys) {
+          const keys = parseValue(data.keys);
 
-          keysList.innerHTML = keys.map((key, index) => `
-            <div class="key-item">
-              <div class="key-content">
-                <div class="key-text">🔑 ${key.value}</div>
-                <div class="key-date">Ajoutée: ${new Date(key.addedAt).toLocaleDateString('fr-FR')}</div>
+          if (keys.length > 0) {
+            keysList.innerHTML = keys.map((key, index) => `
+              <div class="key-item">
+                <div class="key-content">
+                  <div class="key-text">🔑 ${key.value}</div>
+                  <div class="key-date">Ajoutée: ${new Date(key.addedAt).toLocaleDateString('fr-FR')}</div>
+                </div>
+                <div class="key-actions">
+                  <button class="btn btn-danger" onclick="deleteGroqKey(${index})">Supprimer</button>
+                </div>
               </div>
-              <div class="key-actions">
-                <button class="btn btn-danger" onclick="deleteGroqKey(${index})">Supprimer</button>
-              </div>
-            </div>
-          `).join('');
-        } else {
-          keysList.innerHTML = `
-            <div class="empty-state">
-              <p>Aucune clé ajoutée pour le moment</p>
-              <p>👆 Ajoutez votre première clé ci-dessus</p>
-            </div>
-          `;
+            `).join('');
+            updateStatus(true);
+            return;
+          }
         }
+
+        keysList.innerHTML = `
+          <div class="empty-state">
+            <p>Aucune clé ajoutée pour le moment</p>
+            <p>👆 Ajoutez votre première clé ci-dessus</p>
+          </div>
+        `;
+        updateStatus(true);
       } catch (error) {
-        showMessage(`❌ Erreur lors du chargement: ${error.message}`, 'error');
-        console.error(error);
+        showMessage(`❌ Erreur: ${error.message}`, 'error');
+        updateStatus(false);
       }
     }
 
@@ -488,14 +612,15 @@
 
     async function loadModels() {
       try {
-        const doc = await db.collection('server_config').doc('models').get();
+        const data = await getDocument('server_config', 'models');
         const textarea = document.getElementById('modelsList');
 
-        if (doc.exists && doc.data().list) {
-          textarea.value = doc.data().list.join('\n');
+        if (data && data.list) {
+          const models = parseValue(data.list);
+          textarea.value = models.join('\n');
         }
       } catch (error) {
-        console.warn('Erreur lors du chargement des modèles:', error);
+        console.warn('Erreur chargement modèles:', error);
       }
     }
 
@@ -511,13 +636,15 @@
         return;
       }
 
+      setLoading(true);
+
       try {
-        const docRef = db.collection('server_config').doc('models');
-        await docRef.set({ list: models }, { merge: true });
+        await setDocument('server_config', 'models', { list: models });
         showMessage('✅ Modèles sauvegardés avec succès!', 'success');
       } catch (error) {
         showMessage(`❌ Erreur: ${error.message}`, 'error');
-        console.error(error);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -541,11 +668,16 @@
 
       if (isOnline) {
         dot.className = 'status-dot online';
-        text.textContent = '✅ Connecté à Firebase';
+        text.textContent = '✅ Connecté à Firestore';
       } else {
         dot.className = 'status-dot offline';
         text.textContent = '❌ Erreur de connexion';
       }
+    }
+
+    function setLoading(loading) {
+      document.getElementById('addBtn').disabled = loading;
+      document.getElementById('saveModelsBtn').disabled = loading;
     }
 
     // ══════════════════════════════════════════
@@ -554,15 +686,11 @@
 
     window.addEventListener('load', async () => {
       try {
-        // Vérifier la connexion à Firebase
-        const doc = await db.collection('server_config').doc('groq_keys').get();
-        updateStatus(true);
-        loadGroqKeys();
-        loadModels();
+        await loadGroqKeys();
+        await loadModels();
       } catch (error) {
+        showMessage(`❌ Erreur de connexion: ${error.message}`, 'error');
         updateStatus(false);
-        showMessage(`❌ Erreur de connexion à Firebase: ${error.message}`, 'error');
-        console.error(error);
       }
     });
   </script>
