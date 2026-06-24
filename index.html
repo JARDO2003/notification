@@ -1,771 +1,570 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COMEO — Configuration Serveur</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des clés Groq - COMEO</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
 
-  :root {
-    --bg: #0a0b10;
-    --surface: #13151f;
-    --surface2: #1c1f2e;
-    --border: #252840;
-    --accent: #d4a853;
-    --accent-dim: rgba(212,168,83,0.12);
-    --accent-glow: rgba(212,168,83,0.25);
-    --green: #22c55e;
-    --green-dim: rgba(34,197,94,0.12);
-    --red: #ef4444;
-    --red-dim: rgba(239,68,68,0.12);
-    --blue: #6366f1;
-    --blue-dim: rgba(99,102,241,0.12);
-    --text: #e8eaf0;
-    --muted: #6b7280;
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'Inter', sans-serif;
-  }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
 
-  body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 0;
-  }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
 
-  /* ── HEADER ── */
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 18px 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
 
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+    .header p {
+      opacity: 0.9;
+      font-size: 14px;
+    }
 
-  .logo-icon {
-    width: 36px; height: 36px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-  }
+    .content {
+      padding: 30px;
+    }
 
-  .logo-text {
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-  }
+    .section {
+      margin-bottom: 40px;
+    }
 
-  .logo-sub {
-    font-size: 11px;
-    color: var(--muted);
-    font-weight: 400;
-    letter-spacing: 0.04em;
-  }
+    .section h2 {
+      color: #333;
+      font-size: 20px;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f0f0f0;
+    }
 
-  .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+    .form-group {
+      margin-bottom: 15px;
+    }
 
-  .status-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 8px var(--green);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+      font-size: 14px;
+    }
 
-  .status-label {
-    font-size: 12px;
-    color: var(--muted);
-  }
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: 'Courier New', monospace;
+      transition: border-color 0.3s;
+    }
 
-  /* ── MAIN ── */
-  main {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 48px 24px;
-  }
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
 
-  .page-title {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-block;
+    }
 
-  .page-subtitle {
-    font-size: 14px;
-    color: var(--muted);
-    margin-bottom: 40px;
-  }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
 
-  /* ── SECTION ── */
-  .section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    margin-bottom: 24px;
-    overflow: hidden;
-  }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
 
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border);
-  }
+    .btn-danger {
+      background: #ff6b6b;
+      color: white;
+      padding: 8px 16px;
+      font-size: 12px;
+    }
 
-  .section-title-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+    .btn-danger:hover {
+      background: #ff5252;
+    }
 
-  .provider-badge {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    padding: 3px 10px;
-    border-radius: 20px;
-  }
+    .btn-success {
+      background: #51cf66;
+      color: white;
+    }
 
-  .badge-groq { background: var(--blue-dim); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); }
-  .badge-mistral { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(212,168,83,0.3); }
+    .btn-success:hover {
+      background: #40c057;
+    }
 
-  .section-title {
-    font-size: 16px;
-    font-weight: 600;
-  }
+    .message {
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      display: none;
+    }
 
-  .key-count {
-    font-size: 12px;
-    color: var(--muted);
-    background: var(--surface2);
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-  }
+    .message.show {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
 
-  .section-body { padding: 20px 24px; }
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
 
-  /* ── KEY LIST ── */
-  .key-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
 
-  .key-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 10px 14px;
-    transition: border-color 0.15s;
-  }
+    .message.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
 
-  .key-row:focus-within { border-color: var(--accent); }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-  .key-index {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    min-width: 22px;
-    text-align: center;
-  }
+    .keys-list {
+      display: grid;
+      gap: 15px;
+    }
 
-  .key-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--text);
-    letter-spacing: 0.03em;
-  }
+    .key-item {
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-  .key-input::placeholder { color: var(--muted); }
+    .key-content {
+      flex: 1;
+    }
 
-  .key-status {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--muted);
-    flex-shrink: 0;
-    transition: background 0.2s;
-  }
-  .key-status.valid { background: var(--green); box-shadow: 0 0 6px var(--green); }
-  .key-status.invalid { background: var(--red); }
+    .key-text {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #666;
+      word-break: break-all;
+      margin-bottom: 5px;
+    }
 
-  .btn-remove {
-    background: none;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 16px;
-    line-height: 1;
-    padding: 2px 4px;
-    border-radius: 4px;
-    transition: color 0.15s, background 0.15s;
-  }
-  .btn-remove:hover { color: var(--red); background: var(--red-dim); }
+    .key-date {
+      font-size: 12px;
+      color: #999;
+    }
 
-  /* ── MODELS ── */
-  .models-section {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border);
-  }
+    .key-actions {
+      display: flex;
+      gap: 10px;
+      margin-left: 15px;
+    }
 
-  .models-label {
-    font-size: 12px;
-    color: var(--muted);
-    font-weight: 500;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+    }
 
-  .model-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
+    .empty-state p {
+      margin-bottom: 10px;
+    }
 
-  .model-tag {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 5px 10px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text);
-  }
+    .status {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background: #f0f4ff;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
 
-  .model-tag .rm { cursor: pointer; color: var(--muted); font-size: 14px; }
-  .model-tag .rm:hover { color: var(--red); }
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
 
-  .model-input-row {
-    display: flex;
-    gap: 8px;
-  }
+    .status-dot.online {
+      background: #51cf66;
+    }
 
-  .model-input {
-    flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 14px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  .model-input:focus { border-color: var(--accent); }
-  .model-input::placeholder { color: var(--muted); }
+    .status-dot.offline {
+      background: #ff6b6b;
+    }
 
-  /* ── BUTTONS ── */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    border: none;
-    border-radius: 8px;
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 9px 16px;
-    transition: opacity 0.15s, transform 0.1s;
-  }
-  .btn:active { transform: scale(0.97); }
+    .status-text {
+      color: #333;
+      font-size: 14px;
+    }
 
-  .btn-add {
-    background: var(--surface2);
-    color: var(--text);
-    border: 1px solid var(--border);
-    width: 100%;
-    justify-content: center;
-    margin-top: 2px;
-  }
-  .btn-add:hover { border-color: var(--accent); color: var(--accent); }
+    .help-text {
+      font-size: 12px;
+      color: #999;
+      margin-top: 8px;
+    }
 
-  .btn-primary {
-    background: var(--accent);
-    color: #0a0b10;
-    font-weight: 600;
-    padding: 11px 24px;
-  }
-  .btn-primary:hover { opacity: 0.9; }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+    }
 
-  .btn-secondary {
-    background: var(--surface2);
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-  .btn-secondary:hover { border-color: var(--accent); }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
 
-  .btn-sm {
-    padding: 6px 12px;
-    font-size: 12px;
-  }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
 
-  /* ── BOTTOM BAR ── */
-  .bottom-bar {
-    position: sticky;
-    bottom: 0;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    padding: 16px 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 22px;
+      }
 
-  .save-info {
-    font-size: 12px;
-    color: var(--muted);
-  }
+      .key-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
 
-  /* ── TOAST ── */
-  #toast {
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    opacity: 0;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 20px;
-    font-size: 13px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    pointer-events: none;
-    transition: opacity 0.25s, transform 0.25s;
-    z-index: 999;
-    white-space: nowrap;
-  }
-  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  #toast.success { border-color: var(--green); color: var(--green); }
-  #toast.error { border-color: var(--red); color: var(--red); }
+      .key-actions {
+        margin-left: 0;
+        margin-top: 10px;
+        width: 100%;
+      }
 
-  /* ── OUTPUT CODE SECTION ── */
-  .output-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-    margin-top: 24px;
-  }
-
-  .output-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface2);
-  }
-
-  .output-title {
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  pre {
-    padding: 20px 24px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: #a5b4fc;
-    overflow-x: auto;
-    line-height: 1.7;
-    background: #0d0f1a;
-  }
-
-  .highlight-key { color: var(--accent); }
-  .highlight-str { color: #86efac; }
-  .highlight-com { color: var(--muted); }
-
-  /* ── DIVIDER ── */
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 8px 0;
-  }
-  .divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-  .divider span { font-size: 11px; color: var(--muted); white-space: nowrap; }
-
-  @media (max-width: 600px) {
-    header { padding: 14px 20px; }
-    main { padding: 28px 16px; }
-    .bottom-bar { padding: 14px 20px; flex-direction: column; gap: 12px; }
-  }
-</style>
+      .btn-danger {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
-
-<header>
-  <div class="logo">
-    <div class="logo-icon">⚙</div>
-    <div>
-      <div class="logo-text">COMEO</div>
-      <div class="logo-sub">Configuration Serveur</div>
+  <div class="container">
+    <div class="header">
+      <h1>🔑 Gestion des clés Groq</h1>
+      <p>Ajoutez et gérez vos clés API Groq pour l'IA COMEO</p>
     </div>
-  </div>
-  <div class="header-actions">
-    <div class="status-dot"></div>
-    <span class="status-label">Mode local — sans Firebase</span>
-  </div>
-</header>
 
-<main>
-  <div class="page-title">Clés API</div>
-  <p class="page-subtitle">Gère tes clés Groq et Mistral ici. Le code JS généré remplace directement la section <code style="font-family:var(--mono);color:var(--accent);font-size:12px">loadServerConfig()</code> dans ds.js.</p>
-
-  <!-- ── GROQ ── -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title-row">
-        <span class="provider-badge badge-groq">GROQ</span>
-        <span class="section-title">Clés API Groq</span>
+    <div class="content">
+      <!-- Statut Firebase -->
+      <div id="status" class="status">
+        <div class="status-dot offline"></div>
+        <span class="status-text">Connexion à Firebase...</span>
       </div>
-      <span class="key-count" id="groq-count">0 clé</span>
-    </div>
-    <div class="section-body">
-      <div class="key-list" id="groq-keys"></div>
-      <button class="btn btn-add" onclick="addKey('groq')">＋ Ajouter une clé Groq</button>
 
-      <div class="models-section">
-        <div class="models-label">📦 Modèles Groq actifs</div>
-        <div class="model-tags" id="groq-models"></div>
-        <div class="model-input-row">
-          <input class="model-input" id="groq-model-input" placeholder="ex: llama-3.3-70b-versatile" />
-          <button class="btn btn-secondary btn-sm" onclick="addModel('groq')">Ajouter</button>
+      <!-- Messages -->
+      <div id="message" class="message"></div>
+
+      <!-- Section Ajouter une clé -->
+      <div class="section">
+        <h2>➕ Ajouter une nouvelle clé Groq</h2>
+        
+        <div class="form-group">
+          <label>Clé API Groq:</label>
+          <input type="text" id="newKey" placeholder="gsk_..." autocomplete="off">
+          <p class="help-text">📌 Obtenez votre clé sur: <a href="https://console.groq.com/" target="_blank">console.groq.com</a></p>
+        </div>
+
+        <button class="btn btn-primary" onclick="addGroqKey()">✅ Ajouter la clé</button>
+      </div>
+
+      <!-- Section Liste des clés -->
+      <div class="section">
+        <h2>📋 Vos clés Groq</h2>
+        
+        <div id="keysList" class="keys-list">
+          <div class="loading">
+            <div class="spinner"></div>
+            Chargement des clés...
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- ── MISTRAL ── -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title-row">
-        <span class="provider-badge badge-mistral">MISTRAL</span>
-        <span class="section-title">Clés API Mistral</span>
-      </div>
-      <span class="key-count" id="mistral-count">0 clé</span>
-    </div>
-    <div class="section-body">
-      <div class="key-list" id="mistral-keys"></div>
-      <button class="btn btn-add" onclick="addKey('mistral')">＋ Ajouter une clé Mistral</button>
-
-      <div class="models-section">
-        <div class="models-label">📦 Modèles Mistral actifs</div>
-        <div class="model-tags" id="mistral-models"></div>
-        <div class="model-input-row">
-          <input class="model-input" id="mistral-model-input" placeholder="ex: mistral-small-latest" />
-          <button class="btn btn-secondary btn-sm" onclick="addModel('mistral')">Ajouter</button>
+      <!-- Section Modèles Groq -->
+      <div class="section">
+        <h2>🤖 Modèles Groq disponibles</h2>
+        <p class="help-text" style="color: #666; margin-bottom: 15px;">Ces modèles seront utilisés par défaut si aucun n'est configuré</p>
+        
+        <div class="form-group">
+          <label>Modèles (un par ligne):</label>
+          <textarea id="modelsList" rows="5" placeholder="llama-3.3-70b-versatile&#10;qwen/qwen3-32b&#10;meta-llama/llama-4-scout-17b-16e-instruct"></textarea>
+          <p class="help-text">Les modèles seront utilisés en rotation</p>
         </div>
+
+        <button class="btn btn-primary" onclick="saveModels()">💾 Sauvegarder les modèles</button>
       </div>
     </div>
   </div>
 
-  <!-- ── CODE GÉNÉRÉ ── -->
-  <div class="output-section">
-    <div class="output-header">
-      <div class="output-title">
-        <span>📋</span>
-        Code à coller dans <code style="font-family:var(--mono);color:var(--accent)">ds.js</code>
-      </div>
-      <button class="btn btn-secondary btn-sm" onclick="copyCode()">Copier</button>
-    </div>
-    <pre id="code-output">// Remplis tes clés ci-dessus pour générer le code</pre>
-  </div>
-</main>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
 
-<div class="bottom-bar">
-  <span class="save-info" id="save-info">Aucune modification</span>
-  <div style="display:flex;gap:10px">
-    <button class="btn btn-secondary" onclick="resetAll()">Réinitialiser</button>
-    <button class="btn btn-primary" onclick="saveAndGenerate()">✓ Générer le code</button>
-  </div>
-</div>
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: 'AIzaSyCPGgtXoDUycykLaTSee0S0yY0tkeJpqKI',
+      authDomain: 'data-com-a94a8.firebaseapp.com',
+      databaseURL: 'https://data-com-a94a8-default-rtdb.firebaseio.com',
+      projectId: 'data-com-a94a8',
+      storageBucket: 'data-com-a94a8.appspot.com',
+      messagingSenderId: '276904640935',
+      appId: '1:276904640935:web:9cd805aeba6c34c767f682',
+      measurementId: 'G-FYQCWY5G4S',
+    };
 
-<div id="toast"></div>
+    // Initialiser Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-<script>
-  // ── STATE ──
-  const state = {
-    groq: {
-      keys: [],
-      models: ['llama-3.3-70b-versatile', 'qwen/qwen3-32b', 'meta-llama/llama-4-scout-17b-16e-instruct']
-    },
-    mistral: {
-      keys: [],
-      models: ['mistral-small-latest', 'open-mistral-7b']
-    }
-  };
+    // ══════════════════════════════════════════
+    // GESTION DES CLÉS GROQ
+    // ══════════════════════════════════════════
 
-  // ── INIT ──
-  function init() {
-    // Charger depuis localStorage si disponible
-    try {
-      const saved = localStorage.getItem('comeo_config');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.groq) state.groq = parsed.groq;
-        if (parsed.mistral) state.mistral = parsed.mistral;
-        showToast('✓ Configuration restaurée', 'success');
+    async function addGroqKey() {
+      const keyInput = document.getElementById('newKey');
+      const newKey = keyInput.value.trim();
+
+      if (!newKey) {
+        showMessage('Veuillez entrer une clé Groq', 'error');
+        return;
       }
-    } catch(e) {}
 
-    if (state.groq.keys.length === 0) state.groq.keys = [''];
-    if (state.mistral.keys.length === 0) state.mistral.keys = [''];
+      if (!newKey.startsWith('gsk_')) {
+        showMessage('⚠️ La clé doit commencer par "gsk_"', 'error');
+        return;
+      }
 
-    renderAll();
-  }
+      try {
+        const docRef = db.collection('server_config').doc('groq_keys');
+        const doc = await docRef.get();
 
-  // ── RENDER ──
-  function renderAll() {
-    renderKeys('groq');
-    renderKeys('mistral');
-    renderModels('groq');
-    renderModels('mistral');
-    updateCounts();
-    generateCode();
-  }
+        let currentKeys = [];
+        if (doc.exists) {
+          currentKeys = doc.data().keys || [];
+        }
 
-  function renderKeys(provider) {
-    const container = document.getElementById(`${provider}-keys`);
-    container.innerHTML = '';
-    state[provider].keys.forEach((key, i) => {
-      const row = document.createElement('div');
-      row.className = 'key-row';
-      const isValid = key.length > 10;
-      row.innerHTML = `
-        <span class="key-index">${String(i+1).padStart(2,'0')}</span>
-        <input class="key-input" type="text" value="${escHtml(key)}"
-          placeholder="${provider === 'groq' ? 'gsk_...' : 'votre clé Mistral'}"
-          oninput="updateKey('${provider}', ${i}, this.value)"
-          autocomplete="off" spellcheck="false" />
-        <div class="key-status ${isValid ? 'valid' : (key.length > 0 ? 'invalid' : '')}"></div>
-        <button class="btn-remove" onclick="removeKey('${provider}', ${i})" title="Supprimer">✕</button>
-      `;
-      container.appendChild(row);
-    });
-  }
+        // Vérifier si la clé existe déjà
+        if (currentKeys.some(k => k.value === newKey)) {
+          showMessage('⚠️ Cette clé est déjà ajoutée', 'error');
+          return;
+        }
 
-  function renderModels(provider) {
-    const container = document.getElementById(`${provider}-models`);
-    container.innerHTML = '';
-    state[provider].models.forEach((m, i) => {
-      const tag = document.createElement('div');
-      tag.className = 'model-tag';
-      tag.innerHTML = `<span>${escHtml(m)}</span><span class="rm" onclick="removeModel('${provider}', ${i})" title="Retirer">✕</span>`;
-      container.appendChild(tag);
-    });
-  }
+        // Ajouter la nouvelle clé
+        currentKeys.push({
+          value: newKey,
+          addedAt: new Date().toISOString()
+        });
 
-  function updateCounts() {
-    ['groq','mistral'].forEach(p => {
-      const valid = state[p].keys.filter(k => k.length > 10).length;
-      const el = document.getElementById(`${p}-count`);
-      el.textContent = `${valid} clé${valid > 1 ? 's' : ''}`;
-      el.style.color = valid > 0 ? 'var(--green)' : 'var(--muted)';
-    });
-  }
+        await docRef.set({ keys: currentKeys }, { merge: true });
 
-  // ── ACTIONS ──
-  function addKey(provider) {
-    state[provider].keys.push('');
-    renderKeys(provider);
-    updateCounts();
-    // Focus le dernier input
-    setTimeout(() => {
-      const inputs = document.querySelectorAll(`#${provider}-keys .key-input`);
-      if (inputs.length) inputs[inputs.length - 1].focus();
-    }, 50);
-  }
-
-  function removeKey(provider, idx) {
-    state[provider].keys.splice(idx, 1);
-    if (state[provider].keys.length === 0) state[provider].keys = [''];
-    renderKeys(provider);
-    updateCounts();
-    generateCode();
-  }
-
-  function updateKey(provider, idx, value) {
-    state[provider].keys[idx] = value;
-    updateCounts();
-    generateCode();
-    document.getElementById('save-info').textContent = 'Modifications non sauvegardées';
-    // Mettre à jour le statut dot de ce row
-    renderKeys(provider);
-  }
-
-  function addModel(provider) {
-    const input = document.getElementById(`${provider}-model-input`);
-    const val = input.value.trim();
-    if (!val) return;
-    if (state[provider].models.includes(val)) {
-      showToast('Ce modèle est déjà dans la liste', 'error');
-      return;
+        showMessage('✅ Clé ajoutée avec succès!', 'success');
+        keyInput.value = '';
+        loadGroqKeys();
+      } catch (error) {
+        showMessage(`❌ Erreur: ${error.message}`, 'error');
+        console.error(error);
+      }
     }
-    state[provider].models.push(val);
-    input.value = '';
-    renderModels(provider);
-    generateCode();
-  }
 
-  function removeModel(provider, idx) {
-    state[provider].models.splice(idx, 1);
-    renderModels(provider);
-    generateCode();
-  }
+    async function deleteGroqKey(index) {
+      if (!confirm('Êtes-vous sûr de vouloir supprimer cette clé?')) {
+        return;
+      }
 
-  // ── GENERATE CODE ──
-  function generateCode() {
-    const groqKeys = state.groq.keys.filter(k => k.trim().length > 0);
-    const mistralKeys = state.mistral.keys.filter(k => k.trim().length > 0);
-    const groqModels = state.groq.models.filter(Boolean);
-    const mistralModels = state.mistral.models.filter(Boolean);
+      try {
+        const docRef = db.collection('server_config').doc('groq_keys');
+        const doc = await docRef.get();
 
-    const indent = '  ';
+        if (doc.exists) {
+          let keys = doc.data().keys || [];
+          keys.splice(index, 1);
+          await docRef.set({ keys }, { merge: true });
+          showMessage('✅ Clé supprimée avec succès!', 'success');
+          loadGroqKeys();
+        }
+      } catch (error) {
+        showMessage(`❌ Erreur: ${error.message}`, 'error');
+        console.error(error);
+      }
+    }
 
-    const groqKeysArr = groqKeys.length > 0
-      ? `[\n${groqKeys.map(k => `${indent}${indent}'${k}'`).join(',\n')}\n${indent}]`
-      : '[]';
+    async function loadGroqKeys() {
+      try {
+        const doc = await db.collection('server_config').doc('groq_keys').get();
+        const keysList = document.getElementById('keysList');
 
-    const mistralKeysArr = mistralKeys.length > 0
-      ? `[\n${groqKeys.map(() => '').join('') /* align */}${mistralKeys.map(k => `${indent}${indent}'${k}'`).join(',\n')}\n${indent}]`
-      : '[]';
+        if (doc.exists && doc.data().keys && doc.data().keys.length > 0) {
+          const keys = doc.data().keys;
 
-    const groqModelsArr = groqModels.length > 0
-      ? `[\n${groqModels.map(m => `${indent}${indent}'${m}'`).join(',\n')}\n${indent}]`
-      : '[]';
+          keysList.innerHTML = keys.map((key, index) => `
+            <div class="key-item">
+              <div class="key-content">
+                <div class="key-text">🔑 ${key.value}</div>
+                <div class="key-date">Ajoutée: ${new Date(key.addedAt).toLocaleDateString('fr-FR')}</div>
+              </div>
+              <div class="key-actions">
+                <button class="btn btn-danger" onclick="deleteGroqKey(${index})">Supprimer</button>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          keysList.innerHTML = `
+            <div class="empty-state">
+              <p>Aucune clé ajoutée pour le moment</p>
+              <p>👆 Ajoutez votre première clé ci-dessus</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        showMessage(`❌ Erreur lors du chargement: ${error.message}`, 'error');
+        console.error(error);
+      }
+    }
 
-    const mistralModelsArr = mistralModels.length > 0
-      ? `[\n${mistralModels.map(m => `${indent}${indent}'${m}'`).join(',\n')}\n${indent}]`
-      : '[]';
+    // ══════════════════════════════════════════
+    // GESTION DES MODÈLES
+    // ══════════════════════════════════════════
 
-    const code = `// ══════════════════════════════════════════
-// CONFIGURATION SERVEUR — Clés API en dur (mode local)
-// Généré le ${new Date().toLocaleString('fr-FR')}
-// ══════════════════════════════════════════
+    async function loadModels() {
+      try {
+        const doc = await db.collection('server_config').doc('models').get();
+        const textarea = document.getElementById('modelsList');
 
-GROQ_API_KEYS = ${groqKeysArr};
+        if (doc.exists && doc.data().list) {
+          textarea.value = doc.data().list.join('\n');
+        }
+      } catch (error) {
+        console.warn('Erreur lors du chargement des modèles:', error);
+      }
+    }
 
-GROQ_MODELS = ${groqModelsArr};
+    async function saveModels() {
+      const textarea = document.getElementById('modelsList');
+      const models = textarea.value
+        .split('\n')
+        .map(m => m.trim())
+        .filter(m => m.length > 0);
 
-MISTRAL_API_KEYS = ${mistralKeysArr};
+      if (models.length === 0) {
+        showMessage('Veuillez entrer au moins un modèle', 'error');
+        return;
+      }
 
-MISTRAL_MODELS = ${mistralModelsArr};
+      try {
+        const docRef = db.collection('server_config').doc('models');
+        await docRef.set({ list: models }, { merge: true });
+        showMessage('✅ Modèles sauvegardés avec succès!', 'success');
+      } catch (error) {
+        showMessage(`❌ Erreur: ${error.message}`, 'error');
+        console.error(error);
+      }
+    }
 
-// ── Supprimer ou commenter la fonction loadServerConfig() ──
-// async function loadServerConfig() { ... }  ← REMPLACER PAR :
+    // ══════════════════════════════════════════
+    // UTILITAIRES
+    // ══════════════════════════════════════════
 
-function loadServerConfig() {
-  serverConfigLoaded = true;
-  aiServiceAvailable = GROQ_API_KEYS.length > 0 || MISTRAL_API_KEYS.length > 0;
-  updateServiceAvailabilityUI();
-  console.log(
-    \`[COMEO] Config locale — \${GROQ_API_KEYS.length} clé(s) Groq, \` +
-    \`\${MISTRAL_API_KEYS.length} clé(s) Mistral\`
-  );
-}`;
+    function showMessage(text, type) {
+      const msgEl = document.getElementById('message');
+      msgEl.textContent = text;
+      msgEl.className = `message show ${type}`;
+      setTimeout(() => {
+        msgEl.classList.remove('show');
+      }, 5000);
+    }
 
-    document.getElementById('code-output').textContent = code;
-  }
+    function updateStatus(isOnline) {
+      const statusEl = document.getElementById('status');
+      const dot = statusEl.querySelector('.status-dot');
+      const text = statusEl.querySelector('.status-text');
 
-  // ── SAVE ──
-  function saveAndGenerate() {
-    try {
-      localStorage.setItem('comeo_config', JSON.stringify(state));
-    } catch(e) {}
-    generateCode();
-    showToast('✓ Code généré — copie et colle dans ds.js', 'success');
-    document.getElementById('save-info').textContent = `Sauvegardé à ${new Date().toLocaleTimeString('fr-FR')}`;
-  }
+      if (isOnline) {
+        dot.className = 'status-dot online';
+        text.textContent = '✅ Connecté à Firebase';
+      } else {
+        dot.className = 'status-dot offline';
+        text.textContent = '❌ Erreur de connexion';
+      }
+    }
 
-  function copyCode() {
-    const code = document.getElementById('code-output').textContent;
-    navigator.clipboard.writeText(code).then(() => {
-      showToast('✓ Code copié dans le presse-papier', 'success');
-    }).catch(() => {
-      showToast('Impossible de copier automatiquement', 'error');
+    // ══════════════════════════════════════════
+    // INITIALISATION
+    // ══════════════════════════════════════════
+
+    window.addEventListener('load', async () => {
+      try {
+        // Vérifier la connexion à Firebase
+        const doc = await db.collection('server_config').doc('groq_keys').get();
+        updateStatus(true);
+        loadGroqKeys();
+        loadModels();
+      } catch (error) {
+        updateStatus(false);
+        showMessage(`❌ Erreur de connexion à Firebase: ${error.message}`, 'error');
+        console.error(error);
+      }
     });
-  }
-
-  function resetAll() {
-    if (!confirm('Réinitialiser toutes les clés ?')) return;
-    state.groq.keys = [''];
-    state.mistral.keys = [''];
-    state.groq.models = ['llama-3.3-70b-versatile', 'qwen/qwen3-32b', 'meta-llama/llama-4-scout-17b-16e-instruct'];
-    state.mistral.models = ['mistral-small-latest', 'open-mistral-7b'];
-    try { localStorage.removeItem('comeo_config'); } catch(e) {}
-    renderAll();
-    showToast('Réinitialisé', 'success');
-  }
-
-  // ── TOAST ──
-  function showToast(msg, type = 'success') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = `show ${type}`;
-    clearTimeout(window._toastTimer);
-    window._toastTimer = setTimeout(() => { t.className = ''; }, 2800);
-  }
-
-  // ── UTILS ──
-  function escHtml(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  // ── Enter sur model input ──
-  document.addEventListener('DOMContentLoaded', () => {
-    ['groq','mistral'].forEach(p => {
-      document.getElementById(`${p}-model-input`).addEventListener('keydown', e => {
-        if (e.key === 'Enter') addModel(p);
-      });
-    });
-    init();
-  });
-</script>
+  </script>
 </body>
 </html>
