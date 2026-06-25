@@ -1,698 +1,574 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion des clés Groq - COMEO</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-      overflow: hidden;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 30px;
-      text-align: center;
-    }
-
-    .header h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
-
-    .header p {
-      opacity: 0.9;
-      font-size: 14px;
-    }
-
-    .content {
-      padding: 30px;
-    }
-
-    .section {
-      margin-bottom: 40px;
-    }
-
-    .section h2 {
-      color: #333;
-      font-size: 20px;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #f0f0f0;
-    }
-
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      color: #555;
-      font-weight: 500;
-      font-size: 14px;
-    }
-
-    input[type="text"],
-    textarea {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #e0e0e0;
-      border-radius: 6px;
-      font-size: 14px;
-      font-family: 'Courier New', monospace;
-      transition: border-color 0.3s;
-    }
-
-    input[type="text"]:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .btn {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: inline-block;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-primary:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .btn-danger {
-      background: #ff6b6b;
-      color: white;
-      padding: 8px 16px;
-      font-size: 12px;
-    }
-
-    .btn-danger:hover {
-      background: #ff5252;
-    }
-
-    .message {
-      padding: 15px;
-      border-radius: 6px;
-      margin-bottom: 15px;
-      display: none;
-    }
-
-    .message.show {
-      display: block;
-      animation: slideIn 0.3s ease-out;
-    }
-
-    .message.success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-
-    .message.error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-
-    .message.info {
-      background: #d1ecf1;
-      color: #0c5460;
-      border: 1px solid #bee5eb;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .keys-list {
-      display: grid;
-      gap: 15px;
-    }
-
-    .key-item {
-      background: #f8f9fa;
-      border-left: 4px solid #667eea;
-      padding: 15px;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .key-content {
-      flex: 1;
-    }
-
-    .key-text {
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      color: #666;
-      word-break: break-all;
-      margin-bottom: 5px;
-    }
-
-    .key-date {
-      font-size: 12px;
-      color: #999;
-    }
-
-    .key-actions {
-      display: flex;
-      gap: 10px;
-      margin-left: 15px;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: #999;
-    }
-
-    .empty-state p {
-      margin-bottom: 10px;
-    }
-
-    .status {
-      display: flex;
-      align-items: center;
-      padding: 15px;
-      background: #f0f4ff;
-      border-radius: 6px;
-      margin-bottom: 20px;
-    }
-
-    .status-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      margin-right: 10px;
-    }
-
-    .status-dot.online {
-      background: #51cf66;
-    }
-
-    .status-dot.offline {
-      background: #ff6b6b;
-    }
-
-    .status-text {
-      color: #333;
-      font-size: 14px;
-    }
-
-    .help-text {
-      font-size: 12px;
-      color: #999;
-      margin-top: 8px;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 20px;
-      color: #999;
-    }
-
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #667eea;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 10px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .warning-box {
-      background: #fff3cd;
-      border: 1px solid #ffeaa7;
-      border-radius: 6px;
-      padding: 15px;
-      margin-bottom: 20px;
-      color: #856404;
-      font-size: 14px;
-    }
-
-    @media (max-width: 768px) {
-      .header h1 {
-        font-size: 22px;
-      }
-
-      .key-item {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .key-actions {
-        margin-left: 0;
-        margin-top: 10px;
-        width: 100%;
-      }
-
-      .btn-danger {
-        width: 100%;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COMEO AI — Administration Serveur</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #06070f; color: #e8e6df; min-height: 100vh; }
+  header { background: #0a0b10; border-bottom: 1px solid rgba(212,168,83,.2); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .logo { font-size: 18px; font-weight: 700; color: #d4a853; letter-spacing: .05em; }
+  .logo span { color: rgba(255,255,255,.4); font-weight: 400; font-size: 13px; margin-left: 10px; }
+  .badge-admin { background: rgba(212,168,83,.15); border: 1px solid rgba(212,168,83,.3); color: #d4a853; font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: 600; letter-spacing: .08em; }
+  main { max-width: 960px; margin: 0 auto; padding: 32px 20px; }
+  .section { background: #0d0f1a; border: 1px solid rgba(255,255,255,.07); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #d4a853; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: rgba(212,168,83,.15); }
+  label { display: block; font-size: 12px; color: rgba(255,255,255,.5); margin-bottom: 6px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+  input, select, textarea { width: 100%; background: #06070f; border: 1px solid rgba(255,255,255,.1); border-radius: 6px; color: #e8e6df; font-family: 'Courier New', monospace; font-size: 13px; padding: 10px 12px; outline: none; transition: border-color .2s; }
+  input:focus, select:focus, textarea:focus { border-color: rgba(212,168,83,.5); }
+  textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+  .row { display: grid; gap: 16px; margin-bottom: 16px; }
+  .row-2 { grid-template-columns: 1fr 1fr; }
+  .row-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .key-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
+  .key-row input { flex: 1; }
+  .key-status { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; flex-shrink: 0; margin-top: 14px; box-shadow: 0 0 6px #4ade80; }
+  .key-status.empty { background: rgba(255,255,255,.15); box-shadow: none; }
+  .btn-remove { background: rgba(220,38,38,.1); border: 1px solid rgba(220,38,38,.2); color: #f87171; padding: 0 10px; height: 38px; border-radius: 6px; cursor: pointer; font-size: 16px; flex-shrink: 0; transition: background .2s; }
+  .btn-remove:hover { background: rgba(220,38,38,.2); }
+  .btn-add { background: transparent; border: 1px dashed rgba(255,255,255,.15); color: rgba(255,255,255,.4); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; width: 100%; margin-top: 4px; transition: all .2s; }
+  .btn-add:hover { border-color: rgba(212,168,83,.4); color: #d4a853; }
+  .actions { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; }
+  .btn-primary { background: #d4a853; color: #06070f; border: none; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; transition: filter .2s; letter-spacing: .02em; }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-secondary { background: transparent; border: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.7); padding: 12px 20px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: all .2s; }
+  .btn-secondary:hover { border-color: rgba(255,255,255,.3); color: #fff; }
+  .btn-danger { background: transparent; border: 1px solid rgba(220,38,38,.3); color: #f87171; padding: 12px 20px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: all .2s; }
+  .btn-danger:hover { background: rgba(220,38,38,.1); }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: #0a0b10; border: 1px solid rgba(74,222,128,.3); color: #4ade80; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .toast.err { border-color: rgba(248,113,113,.3); color: #f87171; }
+  .toast.show { opacity: 1; }
+  .model-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(139,92,246,.1); border: 1px solid rgba(139,92,246,.2); color: #a78bfa; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-family: 'Courier New', monospace; margin: 3px; }
+  .model-tag button { background: none; border: none; color: inherit; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; opacity: .6; }
+  .model-tag button:hover { opacity: 1; }
+  .models-container { min-height: 40px; padding: 6px; border: 1px solid rgba(255,255,255,.08); border-radius: 6px; margin-bottom: 8px; }
+  .code-output { background: #06070f; border: 1px solid rgba(212,168,83,.2); border-radius: 8px; padding: 16px; font-family: 'Courier New', monospace; font-size: 12px; color: #d4a853; white-space: pre-wrap; word-break: break-all; max-height: 320px; overflow-y: auto; display: none; margin-top: 16px; }
+  .code-output.show { display: block; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); border-radius: 8px; padding: 14px 16px; }
+  .stat-label { font-size: 11px; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px; }
+  .stat-val { font-size: 22px; font-weight: 700; color: #d4a853; font-family: 'Courier New', monospace; }
+  .hint { font-size: 11px; color: rgba(255,255,255,.3); margin-top: 4px; }
+  .step { display: flex; gap: 8px; align-items: center; font-size: 12px; color: rgba(255,255,255,.5); margin-bottom: 6px; }
+  .step-n { width: 20px; height: 20px; border-radius: 50%; background: rgba(212,168,83,.15); border: 1px solid rgba(212,168,83,.3); display: flex; align-items: center; justify-content: center; font-size: 10px; color: #d4a853; flex-shrink: 0; font-weight: 700; }
+  @media (max-width: 600px) { .row-2, .row-3 { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: 1fr 1fr; } }
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>🔑 Gestion des clés Groq</h1>
-      <p>Ajoutez et gérez vos clés API Groq pour l'IA COMEO</p>
+
+<header>
+  <div class="logo">COMEO AI <span>Administration Serveur</span></div>
+  <span class="badge-admin">ADMIN</span>
+</header>
+
+<main>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Clés Groq</div>
+      <div class="stat-val" id="stat-groq">0</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-label">Clés Mistral</div>
+      <div class="stat-val" id="stat-mistral">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Modèles Groq</div>
+      <div class="stat-val" id="stat-models">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Modèles Mistral</div>
+      <div class="stat-val" id="stat-mist-models">0</div>
+    </div>
+  </div>
 
-    <div class="content">
-      <!-- Statut -->
-      <div id="status" class="status">
-        <div class="status-dot offline"></div>
-        <span class="status-text">Connexion à Firestore...</span>
+  <!-- FIREBASE CONFIG -->
+  <div class="section">
+    <div class="section-title">Configuration Firebase</div>
+    <div class="row row-2">
+      <div>
+        <label>Project ID</label>
+        <input type="text" id="fb-project-id" value="data-com-a94a8" placeholder="data-com-a94a8">
       </div>
-
-      <!-- Messages -->
-      <div id="message" class="message"></div>
-
-      <!-- Avertissement -->
-      <div class="warning-box">
-        ⚠️ Assurez-vous que Firestore est en <strong>"Mode test"</strong> pour que cela fonctionne!
+      <div>
+        <label>API Key Firebase</label>
+        <input type="password" id="fb-api-key" value="AIzaSyCPGgtXoDUycykLaTSee0S0yY0tkeJpqKI" placeholder="AIzaSy...">
       </div>
-
-      <!-- Section Ajouter une clé -->
-      <div class="section">
-        <h2>➕ Ajouter une nouvelle clé Groq</h2>
-        
-        <div class="form-group">
-          <label>Clé API Groq:</label>
-          <input type="text" id="newKey" placeholder="gsk_..." autocomplete="off">
-          <p class="help-text">📌 Obtenez votre clé sur: <a href="https://console.groq.com/" target="_blank">console.groq.com</a></p>
-        </div>
-
-        <button class="btn btn-primary" id="addBtn" onclick="addGroqKey()">✅ Ajouter la clé</button>
+    </div>
+    <div class="row row-2">
+      <div>
+        <label>Auth Domain</label>
+        <input type="text" id="fb-auth-domain" value="data-com-a94a8.firebaseapp.com">
       </div>
-
-      <!-- Section Liste des clés -->
-      <div class="section">
-        <h2>📋 Vos clés Groq</h2>
-        
-        <div id="keysList" class="keys-list">
-          <div class="loading">
-            <div class="spinner"></div>
-            Chargement des clés...
-          </div>
-        </div>
+      <div>
+        <label>Database URL</label>
+        <input type="text" id="fb-db-url" value="https://data-com-a94a8-default-rtdb.firebaseio.com">
       </div>
-
-      <!-- Section Modèles Groq -->
-      <div class="section">
-        <h2>🤖 Modèles Groq disponibles</h2>
-        <p class="help-text" style="color: #666; margin-bottom: 15px;">Ces modèles seront utilisés par défaut si aucun n'est configuré</p>
-        
-        <div class="form-group">
-          <label>Modèles (un par ligne):</label>
-          <textarea id="modelsList" rows="5" placeholder="llama-3.3-70b-versatile&#10;qwen/qwen3-32b&#10;meta-llama/llama-4-scout-17b-16e-instruct"></textarea>
-          <p class="help-text">Les modèles seront utilisés en rotation</p>
-        </div>
-
-        <button class="btn btn-primary" id="saveModelsBtn" onclick="saveModels()">💾 Sauvegarder les modèles</button>
+    </div>
+    <div class="row row-3">
+      <div>
+        <label>Storage Bucket</label>
+        <input type="text" id="fb-storage" value="data-com-a94a8.appspot.com">
+      </div>
+      <div>
+        <label>Messaging Sender ID</label>
+        <input type="text" id="fb-msg-id" value="276904640935">
+      </div>
+      <div>
+        <label>App ID</label>
+        <input type="text" id="fb-app-id" value="1:276904640935:web:9cd805aeba6c34c767f682">
       </div>
     </div>
   </div>
 
-  <script>
-    // Configuration Firestore
-    const PROJECT_ID = 'data-com-a94a8';
-    const API_KEY = 'AIzaSyCPGgtXoDUycykLaTSee0S0yY0tkeJpqKI';
-    const BASE_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+  <!-- FIREBASE ROBOT -->
+  <div class="section">
+    <div class="section-title">Firebase Robot Cache (DB secondaire)</div>
+    <div class="row row-2">
+      <div>
+        <label>Project ID Robot</label>
+        <input type="text" id="fb2-project-id" value="data-gbre">
+      </div>
+      <div>
+        <label>API Key Robot</label>
+        <input type="password" id="fb2-api-key" value="AIzaSyAocBTsHd-A9OJ7RAagxwxtZd0pdW6TX3I">
+      </div>
+    </div>
+    <div class="row row-2">
+      <div>
+        <label>Auth Domain Robot</label>
+        <input type="text" id="fb2-auth-domain" value="data-gbre.firebaseapp.com">
+      </div>
+      <div>
+        <label>Database URL Robot</label>
+        <input type="text" id="fb2-db-url" value="https://data-gbre-default-rtdb.firebaseio.com">
+      </div>
+    </div>
+  </div>
 
-    // ══════════════════════════════════════════
-    // REQUÊTES FIRESTORE
-    // ══════════════════════════════════════════
+  <!-- CLÉS GROQ -->
+  <div class="section">
+    <div class="section-title">Clés API Groq</div>
+    <div id="groq-keys-container"></div>
+    <button class="btn-add" onclick="addGroqKey()">+ Ajouter une clé Groq</button>
+    <p class="hint" style="margin-top:8px">Les clés Groq sont utilisées en rotation automatique. Format : gsk_...</p>
+  </div>
 
-    async function getDocument(collectionId, documentId) {
-      try {
-        const url = `${BASE_URL}/${collectionId}/${documentId}?key=${API_KEY}`;
-        const response = await fetch(url);
-        
-        if (response.status === 404) {
-          return null;
-        }
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        return data.fields || null;
-      } catch (error) {
-        console.error('Erreur getDocument:', error);
-        throw error;
-      }
-    }
+  <!-- MODÈLES GROQ -->
+  <div class="section">
+    <div class="section-title">Modèles Groq (ordre de priorité)</div>
+    <div class="models-container" id="groq-models-tags"></div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="groq-model-input" placeholder="Ex: llama-3.3-70b-versatile" style="flex:1">
+      <button class="btn-secondary" style="white-space:nowrap;padding:10px 16px" onclick="addGroqModel()">Ajouter</button>
+    </div>
+    <p class="hint" style="margin-top:6px">Modèles disponibles : llama-3.3-70b-versatile · qwen/qwen3-32b · meta-llama/llama-4-scout-17b-16e-instruct · gemma2-9b-it · mixtral-8x7b-32768</p>
+  </div>
 
-    async function setDocument(collectionId, documentId, fields) {
-      try {
-        const url = `${BASE_URL}/${collectionId}/${documentId}?key=${API_KEY}`;
-        
-        const firestoreFields = {};
-        for (const [key, value] of Object.entries(fields)) {
-          firestoreFields[key] = formatValue(value);
-        }
+  <!-- CLÉS MISTRAL -->
+  <div class="section">
+    <div class="section-title">Clés API Mistral (fallback)</div>
+    <div id="mistral-keys-container"></div>
+    <button class="btn-add" onclick="addMistralKey()">+ Ajouter une clé Mistral</button>
+    <p class="hint" style="margin-top:8px">Utilisées en fallback si toutes les clés Groq sont saturées. Format : ...</p>
+  </div>
 
-        const response = await fetch(url, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            fields: firestoreFields
-          })
-        });
+  <!-- MODÈLES MISTRAL -->
+  <div class="section">
+    <div class="section-title">Modèles Mistral</div>
+    <div class="models-container" id="mistral-models-tags"></div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="mistral-model-input" placeholder="Ex: mistral-small-latest" style="flex:1">
+      <button class="btn-secondary" style="white-space:nowrap;padding:10px 16px" onclick="addMistralModel()">Ajouter</button>
+    </div>
+    <p class="hint" style="margin-top:6px">Modèles : mistral-small-latest · open-mistral-7b · mistral-medium · mistral-large-latest</p>
+  </div>
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+  <!-- PAIEMENT WAVE -->
+  <div class="section">
+    <div class="section-title">Configuration Paiement Wave</div>
+    <div class="row row-2">
+      <div>
+        <label>Montant abonnement (FCFA)</label>
+        <input type="number" id="wave-amount" value="15000">
+      </div>
+      <div>
+        <label>Durée abonnement (jours)</label>
+        <input type="number" id="wave-duration" value="30">
+      </div>
+    </div>
+    <div class="row row-2">
+      <div>
+        <label>Durée essai gratuit (heures)</label>
+        <input type="number" id="trial-hours" value="12">
+      </div>
+      <div>
+        <label>Code d'activation (sera hashé SHA-256)</label>
+        <input type="text" id="wave-code" placeholder="Ex: COMEO2024PRO">
+      </div>
+    </div>
+    <div>
+      <label>URL Wave Pay (suffix)</label>
+      <input type="text" id="wave-url-suffix" value="M_ci_iqMcg8KwRE-W">
+    </div>
+  </div>
 
-        return true;
-      } catch (error) {
-        console.error('Erreur setDocument:', error);
-        throw error;
-      }
-    }
+  <!-- PARAMÈTRES IA -->
+  <div class="section">
+    <div class="section-title">Paramètres IA</div>
+    <div class="row row-3">
+      <div>
+        <label>Max tokens</label>
+        <input type="number" id="ai-max-tokens" value="6000">
+      </div>
+      <div>
+        <label>Température</label>
+        <input type="number" id="ai-temperature" value="0.02" step="0.01" min="0" max="2">
+      </div>
+      <div>
+        <label>Top P</label>
+        <input type="number" id="ai-top-p" value="0.95" step="0.01" min="0" max="1">
+      </div>
+    </div>
+    <div class="row row-2">
+      <div>
+        <label>Max cache mémoire (entrées)</label>
+        <input type="number" id="ai-cache-max" value="500">
+      </div>
+      <div>
+        <label>Délai silence robot STT (ms)</label>
+        <input type="number" id="robot-silence-ms" value="2800">
+      </div>
+    </div>
+  </div>
 
-    function formatValue(value) {
-      if (Array.isArray(value)) {
-        return {
-          arrayValue: {
-            values: value.map(v => {
-              if (typeof v === 'object') {
-                const mapFields = {};
-                for (const [k, val] of Object.entries(v)) {
-                  mapFields[k] = formatValue(val);
-                }
-                return { mapValue: { fields: mapFields } };
-              }
-              return formatValue(v);
-            })
-          }
-        };
-      }
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn-primary" onclick="sauvegarder()">💾 Sauvegarder la configuration</button>
+    <button class="btn-secondary" onclick="genererCode()">📋 Générer le code JS</button>
+    <button class="btn-secondary" onclick="testerGroq()">⚡ Tester Groq</button>
+    <button class="btn-danger" onclick="reinitialiser()">↺ Réinitialiser</button>
+  </div>
 
-      if (typeof value === 'object' && value !== null) {
-        const mapFields = {};
-        for (const [k, v] of Object.entries(value)) {
-          mapFields[k] = formatValue(v);
-        }
-        return { mapValue: { fields: mapFields } };
-      }
+  <!-- SORTIE CODE -->
+  <div class="code-output" id="code-output"></div>
 
-      if (typeof value === 'string') {
-        return { stringValue: value };
-      }
+  <!-- GUIDE -->
+  <div class="section" style="margin-top:24px">
+    <div class="section-title">Guide d'utilisation</div>
+    <div class="step"><div class="step-n">1</div>Remplissez toutes les clés API dans les sections ci-dessus</div>
+    <div class="step"><div class="step-n">2</div>Cliquez sur "Sauvegarder" pour stocker localement (localStorage)</div>
+    <div class="step"><div class="step-n">3</div>Cliquez sur "Générer le code JS" pour obtenir le bloc à insérer dans app.js</div>
+    <div class="step"><div class="step-n">4</div>Copiez le code généré et remplacez le bloc "CONFIGURATION SERVEUR" dans app.js</div>
+    <div class="step"><div class="step-n">5</div>Testez avec le bouton "Tester Groq" avant de mettre en production</div>
+  </div>
 
-      if (typeof value === 'boolean') {
-        return { booleanValue: value };
-      }
+</main>
 
-      if (typeof value === 'number') {
-        return { integerValue: String(value) };
-      }
+<div class="toast" id="toast"></div>
 
-      return { nullValue: null };
-    }
+<script>
+const DEFAULTS = {
+  groqKeys: ['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'],
+  groqModels: ['llama-3.3-70b-versatile','qwen/qwen3-32b','meta-llama/llama-4-scout-17b-16e-instruct'],
+  mistralKeys: [],
+  mistralModels: ['mistral-small-latest','open-mistral-7b'],
+};
 
-    function parseValue(firestoreValue) {
-      if (firestoreValue.stringValue !== undefined) {
-        return firestoreValue.stringValue;
-      }
-      if (firestoreValue.integerValue !== undefined) {
-        return parseInt(firestoreValue.integerValue);
-      }
-      if (firestoreValue.booleanValue !== undefined) {
-        return firestoreValue.booleanValue;
-      }
-      if (firestoreValue.arrayValue !== undefined) {
-        return firestoreValue.arrayValue.values.map(parseValue);
-      }
-      if (firestoreValue.mapValue !== undefined) {
-        const result = {};
-        for (const [key, val] of Object.entries(firestoreValue.mapValue.fields)) {
-          result[key] = parseValue(val);
-        }
-        return result;
-      }
-      return null;
-    }
+let state = {
+  groqKeys: [...DEFAULTS.groqKeys],
+  groqModels: [...DEFAULTS.groqModels],
+  mistralKeys: [...DEFAULTS.mistralKeys],
+  mistralModels: [...DEFAULTS.mistralModels],
+};
 
-    // ══════════════════════════════════════════
-    // GESTION DES CLÉS GROQ
-    // ══════════════════════════════════════════
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type==='err' ? ' err' : '');
+  setTimeout(() => el.classList.remove('show'), 3200);
+}
 
-    async function addGroqKey() {
-      const keyInput = document.getElementById('newKey');
-      const newKey = keyInput.value.trim();
+function renderGroqKeys() {
+  const c = document.getElementById('groq-keys-container');
+  c.innerHTML = '';
+  state.groqKeys.forEach((k, i) => {
+    const row = document.createElement('div');
+    row.className = 'key-row';
+    const dot = document.createElement('div');
+    dot.className = 'key-status' + (k ? '' : ' empty');
+    const inp = document.createElement('input');
+    inp.type = 'password';
+    inp.value = k;
+    inp.placeholder = 'gsk_...';
+    inp.oninput = (e) => { state.groqKeys[i] = e.target.value; dot.className = 'key-status' + (e.target.value ? '' : ' empty'); updateStats(); };
+    const btn = document.createElement('button');
+    btn.className = 'btn-remove';
+    btn.textContent = '✕';
+    btn.onclick = () => { state.groqKeys.splice(i,1); renderGroqKeys(); updateStats(); };
+    row.append(dot, inp, btn);
+    c.appendChild(row);
+  });
+  updateStats();
+}
 
-      if (!newKey) {
-        showMessage('Veuillez entrer une clé Groq', 'error');
-        return;
-      }
+function addGroqKey() {
+  state.groqKeys.push('');
+  renderGroqKeys();
+  const inputs = document.querySelectorAll('#groq-keys-container input');
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
 
-      if (!newKey.startsWith('gsk_')) {
-        showMessage('⚠️ La clé doit commencer par "gsk_"', 'error');
-        return;
-      }
+function renderMistralKeys() {
+  const c = document.getElementById('mistral-keys-container');
+  c.innerHTML = '';
+  state.mistralKeys.forEach((k, i) => {
+    const row = document.createElement('div');
+    row.className = 'key-row';
+    const dot = document.createElement('div');
+    dot.className = 'key-status' + (k ? '' : ' empty');
+    const inp = document.createElement('input');
+    inp.type = 'password';
+    inp.value = k;
+    inp.placeholder = 'Clé Mistral...';
+    inp.oninput = (e) => { state.mistralKeys[i] = e.target.value; dot.className = 'key-status' + (e.target.value ? '' : ' empty'); updateStats(); };
+    const btn = document.createElement('button');
+    btn.className = 'btn-remove';
+    btn.textContent = '✕';
+    btn.onclick = () => { state.mistralKeys.splice(i,1); renderMistralKeys(); updateStats(); };
+    row.append(dot, inp, btn);
+    c.appendChild(row);
+  });
+  updateStats();
+}
 
-      setLoading(true);
+function addMistralKey() {
+  state.mistralKeys.push('');
+  renderMistralKeys();
+  const inputs = document.querySelectorAll('#mistral-keys-container input');
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
 
-      try {
-        let data = await getDocument('server_config', 'groq_keys');
-        let currentKeys = [];
+function renderGroqModels() {
+  const c = document.getElementById('groq-models-tags');
+  c.innerHTML = '';
+  state.groqModels.forEach((m, i) => {
+    const tag = document.createElement('span');
+    tag.className = 'model-tag';
+    const lbl = document.createElement('span');
+    lbl.textContent = m;
+    const btn = document.createElement('button');
+    btn.textContent = '✕';
+    btn.onclick = () => { state.groqModels.splice(i,1); renderGroqModels(); updateStats(); };
+    tag.append(lbl, btn);
+    c.appendChild(tag);
+  });
+  updateStats();
+}
 
-        if (data && data.keys) {
-          currentKeys = parseValue(data.keys);
-        }
+function addGroqModel() {
+  const inp = document.getElementById('groq-model-input');
+  const v = inp.value.trim();
+  if (!v) return;
+  if (state.groqModels.includes(v)) { toast('Modèle déjà présent', 'err'); return; }
+  state.groqModels.push(v);
+  inp.value = '';
+  renderGroqModels();
+  toast('Modèle ajouté : ' + v);
+}
 
-        // Vérifier si la clé existe déjà
-        if (currentKeys.some(k => k.value === newKey)) {
-          showMessage('⚠️ Cette clé est déjà ajoutée', 'error');
-          setLoading(false);
-          return;
-        }
+function renderMistralModels() {
+  const c = document.getElementById('mistral-models-tags');
+  c.innerHTML = '';
+  state.mistralModels.forEach((m, i) => {
+    const tag = document.createElement('span');
+    tag.className = 'model-tag';
+    tag.style.background = 'rgba(16,185,129,.08)';
+    tag.style.borderColor = 'rgba(16,185,129,.2)';
+    tag.style.color = '#34d399';
+    const lbl = document.createElement('span');
+    lbl.textContent = m;
+    const btn = document.createElement('button');
+    btn.textContent = '✕';
+    btn.onclick = () => { state.mistralModels.splice(i,1); renderMistralModels(); updateStats(); };
+    tag.append(lbl, btn);
+    c.appendChild(tag);
+  });
+  updateStats();
+}
 
-        // Ajouter la nouvelle clé
-        currentKeys.push({
-          value: newKey,
-          addedAt: new Date().toISOString()
-        });
+function addMistralModel() {
+  const inp = document.getElementById('mistral-model-input');
+  const v = inp.value.trim();
+  if (!v) return;
+  if (state.mistralModels.includes(v)) { toast('Modèle déjà présent', 'err'); return; }
+  state.mistralModels.push(v);
+  inp.value = '';
+  renderMistralModels();
+  toast('Modèle Mistral ajouté : ' + v);
+}
 
-        await setDocument('server_config', 'groq_keys', { keys: currentKeys });
+function updateStats() {
+  document.getElementById('stat-groq').textContent = state.groqKeys.filter(k => k.trim()).length;
+  document.getElementById('stat-mistral').textContent = state.mistralKeys.filter(k => k.trim()).length;
+  document.getElementById('stat-models').textContent = state.groqModels.length;
+  document.getElementById('stat-mist-models').textContent = state.mistralModels.length;
+}
 
-        showMessage('✅ Clé ajoutée avec succès!', 'success');
-        keyInput.value = '';
-        loadGroqKeys();
-      } catch (error) {
-        showMessage(`❌ Erreur: ${error.message}`, 'error');
-      } finally {
-        setLoading(false);
-      }
-    }
+function sauvegarder() {
+  const config = {
+    groqKeys: state.groqKeys.filter(k => k.trim()),
+    groqModels: state.groqModels,
+    mistralKeys: state.mistralKeys.filter(k => k.trim()),
+    mistralModels: state.mistralModels,
+    firebase: {
+      projectId: document.getElementById('fb-project-id').value,
+      apiKey: document.getElementById('fb-api-key').value,
+      authDomain: document.getElementById('fb-auth-domain').value,
+      databaseURL: document.getElementById('fb-db-url').value,
+      storageBucket: document.getElementById('fb-storage').value,
+      messagingSenderId: document.getElementById('fb-msg-id').value,
+      appId: document.getElementById('fb-app-id').value,
+    },
+    firebase2: {
+      projectId: document.getElementById('fb2-project-id').value,
+      apiKey: document.getElementById('fb2-api-key').value,
+      authDomain: document.getElementById('fb2-auth-domain').value,
+      databaseURL: document.getElementById('fb2-db-url').value,
+    },
+    wave: {
+      amount: document.getElementById('wave-amount').value,
+      duration: document.getElementById('wave-duration').value,
+      trialHours: document.getElementById('trial-hours').value,
+      code: document.getElementById('wave-code').value,
+      urlSuffix: document.getElementById('wave-url-suffix').value,
+    },
+    ai: {
+      maxTokens: document.getElementById('ai-max-tokens').value,
+      temperature: document.getElementById('ai-temperature').value,
+      topP: document.getElementById('ai-top-p').value,
+      cacheMax: document.getElementById('ai-cache-max').value,
+      robotSilenceMs: document.getElementById('robot-silence-ms').value,
+    },
+    savedAt: new Date().toISOString(),
+  };
+  try {
+    localStorage.setItem('comeo_server_config', JSON.stringify(config, null, 2));
+    toast('✓ Configuration sauvegardée localement');
+  } catch(e) {
+    toast('Erreur sauvegarde : ' + e.message, 'err');
+  }
+}
 
-    async function deleteGroqKey(index) {
-      if (!confirm('Êtes-vous sûr de vouloir supprimer cette clé?')) {
-        return;
-      }
+function genererCode() {
+  const groqKeys = state.groqKeys.filter(k => k.trim());
+  const mistralKeys = state.mistralKeys.filter(k => k.trim());
+  const now = new Date().toLocaleString('fr-FR');
+  const code = `// ══════════════════════════════════════════
+// CONFIGURATION SERVEUR — Clés API en dur (mode local)
+// Généré le ${now}
+// ══════════════════════════════════════════
 
-      setLoading(true);
+GROQ_API_KEYS = [
+${groqKeys.map(k => `    '${k}'`).join(',\n')}
+  ];
 
-      try {
-        const data = await getDocument('server_config', 'groq_keys');
-        if (data && data.keys) {
-          let keys = parseValue(data.keys);
-          keys.splice(index, 1);
-          await setDocument('server_config', 'groq_keys', { keys });
-          showMessage('✅ Clé supprimée avec succès!', 'success');
-          loadGroqKeys();
-        }
-      } catch (error) {
-        showMessage(`❌ Erreur: ${error.message}`, 'error');
-      } finally {
-        setLoading(false);
-      }
-    }
+GROQ_MODELS = [
+${state.groqModels.map(m => `    '${m}'`).join(',\n')}
+  ];
 
-    async function loadGroqKeys() {
-      try {
-        const data = await getDocument('server_config', 'groq_keys');
-        const keysList = document.getElementById('keysList');
+MISTRAL_API_KEYS = [${mistralKeys.map(k => `\n    '${k}'`).join(',')}${mistralKeys.length ? '\n  ' : ''}];
 
-        if (data && data.keys) {
-          const keys = parseValue(data.keys);
+MISTRAL_MODELS = [
+${state.mistralModels.map(m => `    '${m}'`).join(',\n')}
+  ];
 
-          if (keys.length > 0) {
-            keysList.innerHTML = keys.map((key, index) => `
-              <div class="key-item">
-                <div class="key-content">
-                  <div class="key-text">🔑 ${key.value}</div>
-                  <div class="key-date">Ajoutée: ${new Date(key.addedAt).toLocaleDateString('fr-FR')}</div>
-                </div>
-                <div class="key-actions">
-                  <button class="btn btn-danger" onclick="deleteGroqKey(${index})">Supprimer</button>
-                </div>
-              </div>
-            `).join('');
-            updateStatus(true);
-            return;
-          }
-        }
 
-        keysList.innerHTML = `
-          <div class="empty-state">
-            <p>Aucune clé ajoutée pour le moment</p>
-            <p>👆 Ajoutez votre première clé ci-dessus</p>
-          </div>
-        `;
-        updateStatus(true);
-      } catch (error) {
-        showMessage(`❌ Erreur: ${error.message}`, 'error');
-        updateStatus(false);
-      }
-    }
+// ── La fonction loadServerConfig() est déjà déclarée plus haut (ligne 113) ──`;
 
-    // ══════════════════════════════════════════
-    // GESTION DES MODÈLES
-    // ══════════════════════════════════════════
+  const out = document.getElementById('code-output');
+  out.textContent = code;
+  out.classList.add('show');
 
-    async function loadModels() {
-      try {
-        const data = await getDocument('server_config', 'models');
-        const textarea = document.getElementById('modelsList');
+  navigator.clipboard.writeText(code).then(() => {
+    toast('✓ Code généré et copié dans le presse-papier !');
+  }).catch(() => {
+    toast('✓ Code généré — copiez-le manuellement ci-dessous');
+  });
+}
 
-        if (data && data.list) {
-          const models = parseValue(data.list);
-          textarea.value = models.join('\n');
-        }
-      } catch (error) {
-        console.warn('Erreur chargement modèles:', error);
-      }
-    }
-
-    async function saveModels() {
-      const textarea = document.getElementById('modelsList');
-      const models = textarea.value
-        .split('\n')
-        .map(m => m.trim())
-        .filter(m => m.length > 0);
-
-      if (models.length === 0) {
-        showMessage('Veuillez entrer au moins un modèle', 'error');
-        return;
-      }
-
-      setLoading(true);
-
-      try {
-        await setDocument('server_config', 'models', { list: models });
-        showMessage('✅ Modèles sauvegardés avec succès!', 'success');
-      } catch (error) {
-        showMessage(`❌ Erreur: ${error.message}`, 'error');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    // ══════════════════════════════════════════
-    // UTILITAIRES
-    // ══════════════════════════════════════════
-
-    function showMessage(text, type) {
-      const msgEl = document.getElementById('message');
-      msgEl.textContent = text;
-      msgEl.className = `message show ${type}`;
-      setTimeout(() => {
-        msgEl.classList.remove('show');
-      }, 5000);
-    }
-
-    function updateStatus(isOnline) {
-      const statusEl = document.getElementById('status');
-      const dot = statusEl.querySelector('.status-dot');
-      const text = statusEl.querySelector('.status-text');
-
-      if (isOnline) {
-        dot.className = 'status-dot online';
-        text.textContent = '✅ Connecté à Firestore';
-      } else {
-        dot.className = 'status-dot offline';
-        text.textContent = '❌ Erreur de connexion';
-      }
-    }
-
-    function setLoading(loading) {
-      document.getElementById('addBtn').disabled = loading;
-      document.getElementById('saveModelsBtn').disabled = loading;
-    }
-
-    // ══════════════════════════════════════════
-    // INITIALISATION
-    // ══════════════════════════════════════════
-
-    window.addEventListener('load', async () => {
-      try {
-        await loadGroqKeys();
-        await loadModels();
-      } catch (error) {
-        showMessage(`❌ Erreur de connexion: ${error.message}`, 'error');
-        updateStatus(false);
-      }
+async function testerGroq() {
+  const keys = state.groqKeys.filter(k => k.trim());
+  if (!keys.length) { toast('Aucune clé Groq configurée', 'err'); return; }
+  toast('⏳ Test de connexion Groq...');
+  try {
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + keys[0] },
+      body: JSON.stringify({
+        model: state.groqModels[0] || 'llama-3.3-70b-versatile',
+        max_tokens: 20,
+        messages: [{ role: 'user', content: 'Dis juste: OK' }],
+      }),
     });
-  </script>
+    if (resp.ok) {
+      const d = await resp.json();
+      const rep = d.choices?.[0]?.message?.content || '';
+      toast('✓ Groq OK — Réponse : ' + rep.substring(0, 40));
+    } else {
+      const err = await resp.json().catch(() => ({}));
+      toast('Groq erreur ' + resp.status + ' : ' + (err.error?.message || 'inconnue'), 'err');
+    }
+  } catch(e) {
+    toast('Réseau : ' + e.message, 'err');
+  }
+}
+
+function reinitialiser() {
+  if (!confirm('Réinitialiser aux valeurs par défaut ?')) return;
+  state.groqKeys = [...DEFAULTS.groqKeys];
+  state.groqModels = [...DEFAULTS.groqModels];
+  state.mistralKeys = [...DEFAULTS.mistralKeys];
+  state.mistralModels = [...DEFAULTS.mistralModels];
+  renderAll();
+  toast('Réinitialisé aux valeurs par défaut');
+}
+
+function renderAll() {
+  renderGroqKeys();
+  renderMistralKeys();
+  renderGroqModels();
+  renderMistralModels();
+}
+
+function chargerSauvegarde() {
+  try {
+    const saved = localStorage.getItem('comeo_server_config');
+    if (!saved) return;
+    const cfg = JSON.parse(saved);
+    if (cfg.groqKeys?.length) state.groqKeys = cfg.groqKeys;
+    if (cfg.groqModels?.length) state.groqModels = cfg.groqModels;
+    if (cfg.mistralKeys?.length) state.mistralKeys = cfg.mistralKeys;
+    if (cfg.mistralModels?.length) state.mistralModels = cfg.mistralModels;
+    if (cfg.firebase) {
+      Object.entries({ 'fb-project-id': cfg.firebase.projectId, 'fb-api-key': cfg.firebase.apiKey, 'fb-auth-domain': cfg.firebase.authDomain, 'fb-db-url': cfg.firebase.databaseURL, 'fb-storage': cfg.firebase.storageBucket, 'fb-msg-id': cfg.firebase.messagingSenderId, 'fb-app-id': cfg.firebase.appId }).forEach(([id, val]) => { if (val && document.getElementById(id)) document.getElementById(id).value = val; });
+    }
+    if (cfg.wave) {
+      if (cfg.wave.amount) document.getElementById('wave-amount').value = cfg.wave.amount;
+      if (cfg.wave.code) document.getElementById('wave-code').value = cfg.wave.code;
+    }
+    toast('Config précédente rechargée');
+  } catch(e) {}
+}
+
+document.getElementById('groq-model-input').addEventListener('keydown', e => { if (e.key === 'Enter') addGroqModel(); });
+document.getElementById('mistral-model-input').addEventListener('keydown', e => { if (e.key === 'Enter') addMistralModel(); });
+
+chargerSauvegarde();
+renderAll();
+</script>
 </body>
 </html>
