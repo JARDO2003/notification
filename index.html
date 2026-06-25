@@ -1,1147 +1,724 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>COMEO — Centre de Contrôle</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COMEO — Clés API Admin</title>
 <style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
   :root {
     --bg:       #0a0b10;
-    --surface:  #12141d;
-    --card:     #191c28;
-    --border:   #2a2e42;
+    --surface:  #12141f;
+    --card:     #1a1d2e;
+    --border:   #2a2d42;
     --gold:     #d4a853;
-    --gold-dim: #8a6a2a;
-    --green:    #3ecf74;
-    --red:      #e05252;
+    --gold-dim: #a07830;
+    --green:    #22c55e;
+    --red:      #ef4444;
     --amber:    #f59e0b;
-    --text:     #e8e4da;
-    --muted:    #6b6d7e;
-    --font:     'Segoe UI', system-ui, -apple-system, sans-serif;
-    --mono:     'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-    --radius:   10px;
-    --shadow:   0 4px 24px rgba(0,0,0,.5);
+    --text:     #e8e8f0;
+    --muted:    #6b7280;
+    --mono:     'JetBrains Mono', 'Fira Code', monospace;
   }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: var(--font);
+    font-family: 'Inter', system-ui, sans-serif;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    padding: 32px 20px;
   }
 
-  /* ── TOPBAR ── */
-  .topbar {
+  /* ── Header ── */
+  .header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 28px;
-    height: 58px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    gap: 14px;
+    margin-bottom: 36px;
   }
-  .topbar-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  .logo {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 24px rgba(212,168,83,.25);
   }
-  .topbar-brand .logo {
-    width: 32px; height: 32px;
-    background: var(--gold);
-    border-radius: 7px;
-    display: grid;
-    place-items: center;
-    font-weight: 900;
-    font-size: 14px;
-    color: #000;
-    letter-spacing: -.5px;
-  }
-  .topbar-brand h1 {
-    font-size: 15px;
+  .header-text h1 {
+    font-size: 20px;
     font-weight: 700;
     color: var(--text);
-    letter-spacing: .02em;
+    letter-spacing: -.3px;
   }
-  .topbar-brand span {
-    font-size: 11px;
-    color: var(--muted);
-    margin-left: 2px;
-  }
-  .topbar-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  #connectionStatus {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  .header-text p {
     font-size: 12px;
     color: var(--muted);
+    margin-top: 2px;
   }
-  #connectionStatus .dot {
+  .sync-badge {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+  .sync-dot {
     width: 7px; height: 7px;
     border-radius: 50%;
     background: var(--muted);
     transition: background .3s;
   }
-  #connectionStatus.connected .dot { background: var(--green); }
-  #connectionStatus.connected { color: var(--green); }
+  .sync-dot.live  { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .sync-dot.error { background: var(--red); }
 
-  /* ── LAYOUT ── */
-  .main {
-    flex: 1;
+  /* ── Stats bar ── */
+  .stats {
     display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 0;
-    max-width: 1200px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 32px 20px;
-    gap: 28px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
   }
-
-  /* ── SIDEBAR ── */
-  .sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
   }
-  .sidebar-label {
-    font-size: 10px;
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+  .stat-value {
+    font-size: 28px;
     font-weight: 700;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    padding: 0 8px 4px;
-    margin-top: 8px;
+    font-family: var(--mono);
+    margin-top: 4px;
+    color: var(--gold);
   }
-  .sidebar-label:first-child { margin-top: 0; }
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 12px;
-    border-radius: 8px;
-    font-size: 13px;
-    color: var(--muted);
-    cursor: pointer;
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
-    transition: background .15s, color .15s;
-  }
-  .nav-item:hover { background: var(--card); color: var(--text); }
-  .nav-item.active { background: rgba(212,168,83,.12); color: var(--gold); }
-  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
-  .nav-item .badge {
-    margin-left: auto;
-    background: var(--gold);
-    color: #000;
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: 10px;
-    padding: 1px 7px;
-    min-width: 20px;
-    text-align: center;
-  }
-  .nav-item .badge.red { background: var(--red); color: #fff; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red   { color: var(--red); }
 
-  /* ── CONTENT ── */
-  .content { display: flex; flex-direction: column; gap: 24px; }
-
-  /* ── SECTION TITLE ── */
-  .section-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 4px;
-  }
-  .section-head h2 {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-  }
-  .section-head p {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 3px;
-  }
-
-  /* ── CARD ── */
+  /* ── Card ── */
   .card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px 22px;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 20px;
   }
-  .card-title {
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .09em;
-    color: var(--muted);
-    margin-bottom: 16px;
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: .3px;
+    text-transform: uppercase;
   }
-  .card-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+  .card-header span { font-size: 16px; }
 
-  /* ── KPI STRIP ── */
-  .kpi-strip {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-  }
-  .kpi {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-  }
-  .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 6px; }
-  .kpi-value { font-size: 26px; font-weight: 800; color: var(--text); font-family: var(--mono); }
-  .kpi-value.gold { color: var(--gold); }
-  .kpi-value.green { color: var(--green); }
-  .kpi-value.red { color: var(--red); }
-
-  /* ── CLÉS API ── */
-  .keys-list { display: flex; flex-direction: column; gap: 10px; }
+  /* ── Key list ── */
+  .key-list { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 
   .key-row {
-    display: grid;
-    grid-template-columns: 28px 1fr 90px 110px 90px;
+    display: flex;
     align-items: center;
     gap: 10px;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 11px 14px;
+    border-radius: 10px;
+    padding: 10px 14px;
     transition: border-color .2s;
+    animation: slideIn .25s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
   .key-row:hover { border-color: var(--gold-dim); }
-  .key-row.busy { border-color: var(--amber); }
-  .key-row.error { border-color: var(--red); }
-  .key-row.ok { border-color: var(--green); }
 
   .key-num {
+    width: 24px; height: 24px;
+    background: var(--border);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
     font-size: 11px;
     font-weight: 700;
     color: var(--muted);
-    font-family: var(--mono);
-    text-align: center;
-  }
-
-  .key-input-wrap { position: relative; }
-  .key-input {
-    width: 100%;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 7px 36px 7px 10px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text);
-    outline: none;
-    transition: border-color .2s;
-  }
-  .key-input:focus { border-color: var(--gold); }
-  .key-input::placeholder { color: var(--muted); }
-  .key-toggle {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 14px;
-    padding: 2px;
-    line-height: 1;
-  }
-  .key-toggle:hover { color: var(--text); }
-
-  .key-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-  .key-status .dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--border);
     flex-shrink: 0;
   }
-  .key-status.idle    { color: var(--muted); }
-  .key-status.busy    .dot { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
-  .key-status.busy    { color: var(--amber); }
-  .key-status.ok      .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
-  .key-status.ok      { color: var(--green); }
-  .key-status.error   .dot { background: var(--red); }
-  .key-status.error   { color: var(--red); }
 
-  .key-counter {
-    font-size: 11px;
+  .key-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
     font-family: var(--mono);
-    color: var(--muted);
-    text-align: center;
+    font-size: 13px;
+    color: var(--text);
+    letter-spacing: .5px;
   }
+  .key-input::placeholder { color: var(--muted); font-size: 12px; }
 
-  /* ── BOUTONS ── */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border-radius: 7px;
-    font-size: 12px;
+  .key-status {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px;
     font-weight: 600;
-    font-family: var(--font);
+    flex-shrink: 0;
+    min-width: 70px;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dot-green { background: var(--green); }
+  .dot-red   { background: var(--red); }
+  .dot-amber { background: var(--amber); }
+  .color-green { color: var(--green); }
+  .color-red   { color: var(--red); }
+  .color-amber { color: var(--amber); }
+
+  .btn-icon {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 5px 8px;
+    font-size: 14px;
+    transition: all .15s;
+    flex-shrink: 0;
+  }
+  .btn-icon:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-icon.del:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── Actions ── */
+  .actions { padding: 0 16px 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
     border: none;
-    transition: opacity .15s, transform .1s;
+    transition: all .15s;
   }
-  .btn:active { transform: scale(.97); }
-  .btn:disabled { opacity: .4; cursor: not-allowed; }
-  .btn-gold  { background: var(--gold); color: #000; }
-  .btn-gold:hover:not(:disabled) { opacity: .88; }
-  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
-  .btn-ghost:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
-  .btn-danger { background: transparent; border: 1px solid var(--red); color: var(--red); }
-  .btn-danger:hover:not(:disabled) { background: rgba(224,82,82,.1); }
-  .btn-sm { padding: 5px 10px; font-size: 11px; }
-
-  .btn-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-top: 16px;
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+    color: #0a0b10;
   }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
-  /* ── MODÈLES ── */
-  .model-list { display: flex; flex-direction: column; gap: 8px; }
-  .model-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--surface);
+  .btn-outline {
+    background: transparent;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 14px;
-  }
-  .model-handle { color: var(--muted); cursor: grab; font-size: 14px; }
-  .model-name {
-    flex: 1;
-    font-size: 12px;
-    font-family: var(--mono);
     color: var(--text);
   }
-  .model-tag {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 12px;
-    background: rgba(212,168,83,.12);
-    color: var(--gold);
-    letter-spacing: .04em;
-  }
-  .model-tag.fast { background: rgba(62,207,116,.1); color: var(--green); }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
 
-  /* ── LOGS ── */
-  .log-box {
-    background: var(--bg);
+  .btn-danger {
+    background: transparent;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 14px;
-    height: 220px;
-    overflow-y: auto;
-    font-family: var(--mono);
-    font-size: 11px;
-    line-height: 1.7;
+    color: var(--red);
   }
-  .log-entry { display: flex; gap: 10px; }
-  .log-time { color: var(--muted); flex-shrink: 0; }
-  .log-ok   { color: var(--green); }
-  .log-warn { color: var(--amber); }
-  .log-err  { color: var(--red); }
-  .log-info { color: #7eb6f7; }
+  .btn-danger:hover { border-color: var(--red); background: rgba(239,68,68,.1); }
 
-  /* ── TOAST ── */
-  #toast {
-    position: fixed;
-    bottom: 28px;
-    right: 28px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 12px 18px;
-    font-size: 13px;
-    box-shadow: var(--shadow);
-    display: none;
-    align-items: center;
-    gap: 10px;
-    z-index: 999;
-    animation: slideUp .25s ease;
-    max-width: 340px;
-  }
-  #toast.show { display: flex; }
-  #toast.success { border-color: var(--green); color: var(--green); }
-  #toast.error   { border-color: var(--red);   color: var(--red);   }
-  #toast.info    { border-color: var(--gold);  color: var(--gold);  }
-  @keyframes slideUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform:none; } }
+  .btn:disabled { opacity: .45; cursor: not-allowed; transform: none !important; }
 
-  /* ── QUEUE MONITOR ── */
-  .queue-bar {
+  /* ── Save bar ── */
+  .save-bar {
     display: flex;
     align-items: center;
     gap: 12px;
     background: var(--surface);
+    border: 1px solid var(--gold-dim);
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-bottom: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s;
+  }
+  .save-bar.visible { opacity: 1; pointer-events: all; }
+  .save-bar p { flex: 1; font-size: 13px; color: var(--gold); }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 12px;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex; align-items: center; gap: 10px;
+    transform: translateY(20px); opacity: 0;
+    transition: all .25s;
+    z-index: 999;
+    max-width: 320px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.5);
   }
-  .queue-label { color: var(--muted); }
-  .queue-count {
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: var(--green); color: var(--green); }
+  #toast.error   { border-color: var(--red);   color: var(--red); }
+  #toast.info    { border-color: var(--gold);   color: var(--gold); }
+
+  /* ── Paste zone ── */
+  .paste-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 0 16px 16px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .paste-zone:hover,
+  .paste-zone.drag { border-color: var(--gold); color: var(--gold); background: rgba(212,168,83,.04); }
+
+  /* ── Log ── */
+  .log-area {
+    padding: 14px 16px;
     font-family: var(--mono);
-    font-weight: 700;
-    font-size: 16px;
-    color: var(--text);
+    font-size: 11px;
+    color: var(--muted);
+    max-height: 120px;
+    overflow-y: auto;
+    line-height: 1.7;
   }
-  .queue-count.warn { color: var(--amber); }
-  .queue-dots {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-    flex: 1;
-  }
-  .qdot {
-    width: 10px; height: 10px;
-    border-radius: 3px;
-    background: var(--border);
-    transition: background .3s;
-  }
-  .qdot.active { background: var(--gold); }
-  .qdot.busy   { background: var(--amber); }
+  .log-area .log-ok   { color: var(--green); }
+  .log-area .log-err  { color: var(--red); }
+  .log-area .log-info { color: var(--gold); }
 
-  /* ── SCROLLBAR ── */
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-  /* ── DIVIDER ── */
-  .divider { height: 1px; background: var(--border); margin: 4px 0; }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 800px) {
-    .main { grid-template-columns: 1fr; padding: 16px; }
-    .sidebar { flex-direction: row; flex-wrap: wrap; gap: 6px; }
-    .sidebar-label { display: none; }
-    .kpi-strip { grid-template-columns: repeat(2,1fr); }
-    .key-row { grid-template-columns: 24px 1fr 80px; }
-    .key-counter, .key-row > *:last-child { display: none; }
+  @media (max-width: 600px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 </head>
 <body>
 
-<!-- ── TOPBAR ── -->
-<header class="topbar">
-  <div class="topbar-brand">
-    <div class="logo">C</div>
-    <div>
-      <h1>COMEO <span>/ Centre de Contrôle</span></h1>
-    </div>
+<!-- ── Header ── -->
+<div class="header">
+  <div class="logo">🔑</div>
+  <div class="header-text">
+    <h1>COMEO — Clés API Groq</h1>
+    <p>Synchronisation en temps réel avec Firestore · <span id="project-id">data-com-a94a8</span></p>
   </div>
-  <div class="topbar-right">
-    <div id="connectionStatus">
-      <div class="dot"></div>
-      <span id="connLabel">Connexion…</span>
-    </div>
+  <div class="sync-badge">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span id="sync-label">Connexion…</span>
   </div>
-</header>
-
-<!-- ── MAIN ── -->
-<div class="main">
-
-  <!-- ── SIDEBAR ── -->
-  <nav class="sidebar">
-    <div class="sidebar-label">Navigation</div>
-    <button class="nav-item active" onclick="showSection('keys')" id="nav-keys">
-      <span class="icon">🔑</span> Clés API Groq
-      <span class="badge" id="badgeKeys">0</span>
-    </button>
-    <button class="nav-item" onclick="showSection('models')" id="nav-models">
-      <span class="icon">🧠</span> Modèles
-    </button>
-    <button class="nav-item" onclick="showSection('monitor')" id="nav-monitor">
-      <span class="icon">📊</span> File d'attente
-    </button>
-    <button class="nav-item" onclick="showSection('logs')" id="nav-logs">
-      <span class="icon">📋</span> Journal
-    </button>
-    <div class="divider" style="margin:8px 0"></div>
-    <div class="sidebar-label">Actions</div>
-    <button class="nav-item" onclick="testAllKeys()">
-      <span class="icon">⚡</span> Tester toutes les clés
-    </button>
-    <button class="nav-item" onclick="syncFromFirestore()">
-      <span class="icon">☁️</span> Recharger depuis cloud
-    </button>
-    <button class="nav-item" onclick="clearAllKeys()" style="color:var(--red)">
-      <span class="icon">🗑️</span> Effacer tout
-    </button>
-  </nav>
-
-  <!-- ── CONTENT ── -->
-  <main class="content">
-
-    <!-- KPI STRIP -->
-    <div class="kpi-strip">
-      <div class="kpi">
-        <div class="kpi-label">Clés actives</div>
-        <div class="kpi-value gold" id="kpiActive">0</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Clés occupées</div>
-        <div class="kpi-value amber" id="kpiBusy" style="color:var(--amber)">0</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">En file d'attente</div>
-        <div class="kpi-value" id="kpiQueue">0</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Requêtes traitées</div>
-        <div class="kpi-value green" id="kpiTotal">0</div>
-      </div>
-    </div>
-
-    <!-- ── SECTION : CLÉS ── -->
-    <section id="section-keys">
-      <div class="section-head">
-        <div>
-          <h2>Clés API Groq</h2>
-          <p>Ajoutez de 1 à 10 clés. Les requêtes sont distribuées automatiquement.</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Clés configurées</div>
-        <div class="keys-list" id="keysList"></div>
-        <div class="btn-row">
-          <button class="btn btn-gold" onclick="addKeyRow()">+ Ajouter une clé</button>
-          <button class="btn btn-ghost" onclick="saveKeys()">💾 Sauvegarder &amp; Appliquer</button>
-          <button class="btn btn-ghost btn-sm" onclick="importFromText()">📋 Coller plusieurs clés</button>
-        </div>
-      </div>
-
-      <!-- Zone import multi-clés -->
-      <div class="card" id="importBox" style="display:none">
-        <div class="card-title">Import rapide</div>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Collez vos clés Groq (une par ligne) :</p>
-        <textarea id="importText" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:var(--mono);font-size:12px;color:var(--text);resize:vertical;height:120px;outline:none" placeholder="gsk_xxxxx...&#10;gsk_yyyyy...&#10;gsk_zzzzz..."></textarea>
-        <div class="btn-row">
-          <button class="btn btn-gold" onclick="doImport()">✅ Importer</button>
-          <button class="btn btn-ghost" onclick="document.getElementById('importBox').style.display='none'">Annuler</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── SECTION : MODÈLES ── -->
-    <section id="section-models" style="display:none">
-      <div class="section-head">
-        <div>
-          <h2>Modèles Groq</h2>
-          <p>Ordre de rotation des modèles. Le premier est prioritaire.</p>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Ordre des modèles</div>
-        <div class="model-list" id="modelList"></div>
-        <div class="btn-row">
-          <button class="btn btn-gold" onclick="saveModels()">💾 Sauvegarder</button>
-          <button class="btn btn-ghost btn-sm" onclick="resetModels()">↺ Réinitialiser</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── SECTION : MONITOR ── -->
-    <section id="section-monitor" style="display:none">
-      <div class="section-head">
-        <div>
-          <h2>File d'attente temps réel</h2>
-          <p>Visualisation de l'occupation des clés et des requêtes en attente.</p>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Clés en temps réel</div>
-        <div class="queue-bar" style="margin-bottom:14px">
-          <div class="queue-label">En attente</div>
-          <div class="queue-count" id="monitorQueue">0</div>
-          <div class="queue-dots" id="monitorDots"></div>
-        </div>
-        <div class="keys-list" id="monitorKeys"></div>
-      </div>
-      <div class="card" style="margin-top:16px">
-        <div class="card-title">Charge (dernière minute)</div>
-        <canvas id="loadChart" height="80" style="width:100%"></canvas>
-      </div>
-    </section>
-
-    <!-- ── SECTION : LOGS ── -->
-    <section id="section-logs" style="display:none">
-      <div class="section-head">
-        <div>
-          <h2>Journal d'activité</h2>
-          <p>Historique des appels Groq, rotations et erreurs.</p>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Logs en direct</div>
-        <div class="log-box" id="logBox">
-          <div class="log-entry"><span class="log-time">--:--:--</span><span class="log-info">Centre de contrôle initialisé.</span></div>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-ghost btn-sm" onclick="clearLogs()">🗑️ Effacer les logs</button>
-          <button class="btn btn-ghost btn-sm" onclick="exportLogs()">⬇️ Exporter</button>
-        </div>
-      </div>
-    </section>
-
-  </main>
 </div>
 
-<!-- TOAST -->
+<!-- ── Stats ── -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-label">Clés totales</div>
+    <div class="stat-value" id="stat-total">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Valides</div>
+    <div class="stat-value green" id="stat-valid">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Invalides</div>
+    <div class="stat-value red" id="stat-invalid">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Dernière synchro</div>
+    <div class="stat-value" id="stat-sync" style="font-size:14px;color:var(--muted)">—</div>
+  </div>
+</div>
+
+<!-- ── Save bar ── -->
+<div class="save-bar" id="save-bar">
+  <p>⚠ Modifications non sauvegardées</p>
+  <button class="btn btn-outline" onclick="discardChanges()">Annuler</button>
+  <button class="btn btn-primary" onclick="saveKeys()">💾 Sauvegarder</button>
+</div>
+
+<!-- ── Keys card ── -->
+<div class="card">
+  <div class="card-header">
+    <span>🗝</span> Clés configurées
+    <span style="margin-left:auto;font-size:11px;color:var(--muted);text-transform:none;font-weight:400">
+      Max 10 clés · Rotation automatique
+    </span>
+  </div>
+
+  <div class="key-list" id="key-list">
+    <div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">
+      Chargement depuis Firestore…
+    </div>
+  </div>
+
+  <!-- Paste zone -->
+  <div class="paste-zone" id="paste-zone"
+       onclick="document.getElementById('bulk-input').focus()"
+       ondragover="event.preventDefault();this.classList.add('drag')"
+       ondragleave="this.classList.remove('drag')"
+       ondrop="handleDrop(event)">
+    📋 Collez plusieurs clés ici (une par ligne) ou glissez un fichier .txt
+    <textarea id="bulk-input" style="opacity:0;height:0;width:0;position:absolute"
+              oninput="handleBulkPaste(this.value)"></textarea>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" onclick="addKey()" id="btn-add">+ Ajouter une clé</button>
+    <button class="btn btn-outline" onclick="testAllKeys()" id="btn-test">⚡ Tester toutes les clés</button>
+    <button class="btn btn-danger"  onclick="clearAll()">🗑 Tout effacer</button>
+  </div>
+</div>
+
+<!-- ── Activity log ── -->
+<div class="card">
+  <div class="card-header"><span>📋</span> Journal d'activité</div>
+  <div class="log-area" id="log-area">
+    <span class="log-info">[init] Page chargée, connexion à Firestore…</span><br>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
 <div id="toast"></div>
 
-<!-- ── FIREBASE + SCRIPT ── -->
+<!-- ── Firebase ── -->
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
-// ── Config Firebase (même projet que as.js) ──
+// ── Config Firebase (identique à as.js) ──
 const firebaseConfig = {
-  apiKey: 'AIzaSyCPGgtXoDUycykLaTSee0S0yY0tkeJpqKI',
-  authDomain: 'data-com-a94a8.firebaseapp.com',
-  projectId: 'data-com-a94a8',
-  storageBucket: 'data-com-a94a8.appspot.com',
+  apiKey:            'AIzaSyCPGgtXoDUycykLaTSee0S0yY0tkeJpqKI',
+  authDomain:        'data-com-a94a8.firebaseapp.com',
+  databaseURL:       'https://data-com-a94a8-default-rtdb.firebaseio.com',
+  projectId:         'data-com-a94a8',
+  storageBucket:     'data-com-a94a8.appspot.com',
   messagingSenderId: '276904640935',
-  appId: '1:276904640935:web:9cd805aeba6c34c767f682',
+  appId:             '1:276904640935:web:9cd805aeba6c34c767f682',
 };
-const fbApp = initializeApp(firebaseConfig, 'cc-panel');
-const db    = getFirestore(fbApp);
+const ADMIN_UID = '10jfiqVlYdUPvGVlnFFjjw2Ekgu2';
 
-// ═══════════════════════════════════════
-// ÉTAT LOCAL
-// ═══════════════════════════════════════
-let keys   = [];        // [{value, status, requests, lastUsed}]
-let models = [
-  'llama-3.3-70b-versatile',
-  'qwen/qwen3-32b',
-  'meta-llama/llama-4-scout-17b-16e-instruct',
-];
-let logs        = [];
-let totalHandled = 0;
-let monitorInterval = null;
-let loadHistory = new Array(60).fill(0); // req par seconde, 60 dernières secondes
-let loadTick    = 0;
+const app  = initializeApp(firebaseConfig, 'admin-panel');
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-// ═══════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════
-function ts() {
-  return new Date().toLocaleTimeString('fr-FR');
-}
+// ── État local ──
+let keys          = [];   // [{ value, status }]
+let savedKeys     = [];   // snapshot Firestore
+let unsubscribe   = null;
+let dirty         = false;
 
-function addLog(msg, type = 'info') {
-  logs.push({ time: ts(), msg, type });
-  if (logs.length > 500) logs.shift();
-  const box = document.getElementById('logBox');
-  if (box) {
-    const d = document.createElement('div');
-    d.className = 'log-entry';
-    d.innerHTML = `<span class="log-time">${ts()}</span><span class="log-${type}">${msg}</span>`;
-    box.appendChild(d);
-    box.scrollTop = box.scrollHeight;
-  }
-}
-
+// ══════════════════════════════════════════
+// UI helpers
+// ══════════════════════════════════════════
 function toast(msg, type = 'info', dur = 3000) {
   const el = document.getElementById('toast');
   el.textContent = msg;
-  el.className = 'show ' + type;
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove('show'), dur);
+  el.className = `show ${type}`;
+  setTimeout(() => { el.className = ''; }, dur);
 }
 
-// ═══════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════
-window.showSection = function(name) {
-  ['keys','models','monitor','logs'].forEach(s => {
-    document.getElementById('section-' + s).style.display = s === name ? '' : 'none';
-    document.getElementById('nav-' + s)?.classList.toggle('active', s === name);
-  });
-  if (name === 'monitor') startMonitor();
-  else stopMonitor();
-};
-
-// ═══════════════════════════════════════
-// FIREBASE — CHARGEMENT
-// ═══════════════════════════════════════
-async function loadFromFirestore() {
-  try {
-    const [keysSnap, modelsSnap] = await Promise.all([
-      getDoc(doc(db, 'server_config', 'groq_keys')),
-      getDoc(doc(db, 'server_config', 'models')),
-    ]);
-    if (keysSnap.exists()) {
-      const raw = keysSnap.data().keys || [];
-      keys = raw.map(k => ({ value: k.value || '', status: 'idle', requests: 0, lastUsed: null }));
-    }
-    if (modelsSnap.exists()) {
-      const list = modelsSnap.data().list || [];
-      if (list.length > 0) models = list;
-    }
-    setConnected(true);
-    addLog(`${keys.length} clé(s) et ${models.length} modèle(s) chargés depuis Firestore`, 'ok');
-    renderAll();
-  } catch (e) {
-    setConnected(false);
-    addLog('Impossible de contacter Firestore : ' + e.message, 'err');
-  }
+function log(msg, type = 'info') {
+  const el = document.getElementById('log-area');
+  const time = new Date().toLocaleTimeString('fr-FR');
+  el.innerHTML += `<span class="log-${type}">[${time}] ${msg}</span><br>`;
+  el.scrollTop = el.scrollHeight;
 }
 
-window.syncFromFirestore = async function() {
-  toast('Synchronisation…', 'info');
-  await loadFromFirestore();
-  toast('✅ Synchronisé depuis le cloud', 'success');
-};
-
-// ═══════════════════════════════════════
-// FIREBASE — SAUVEGARDE
-// ═══════════════════════════════════════
-async function saveToFirestore() {
-  const entries = keys.filter(k => k.value.trim()).map((k, i) => ({ id: i + 1, value: k.value.trim() }));
-  await setDoc(doc(db, 'server_config', 'groq_keys'), { keys: entries });
-  await setDoc(doc(db, 'server_config', 'models'), { list: models });
+function setSyncStatus(state) {
+  const dot   = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  if (state === 'live')  { dot.className = 'sync-dot live';  label.textContent = 'En direct'; }
+  if (state === 'error') { dot.className = 'sync-dot error'; label.textContent = 'Erreur'; }
+  if (state === 'wait')  { dot.className = 'sync-dot';       label.textContent = 'Connexion…'; }
 }
 
-// ═══════════════════════════════════════
-// GESTION DES CLÉS
-// ═══════════════════════════════════════
-window.addKeyRow = function() {
-  if (keys.length >= 10) { toast('Maximum 10 clés', 'error'); return; }
-  keys.push({ value: '', status: 'idle', requests: 0, lastUsed: null });
-  renderKeys();
-  // focus sur le nouveau champ
-  setTimeout(() => {
-    const inputs = document.querySelectorAll('.key-input');
-    inputs[inputs.length - 1]?.focus();
-  }, 50);
-};
-
-window.removeKey = function(i) {
-  keys.splice(i, 1);
-  renderKeys();
-  updateBadge();
-};
-
-window.toggleVisibility = function(i) {
-  const input = document.getElementById('key-input-' + i);
-  if (!input) return;
-  input.type = input.type === 'password' ? 'text' : 'password';
-  const btn = document.getElementById('key-toggle-' + i);
-  if (btn) btn.textContent = input.type === 'password' ? '👁' : '🙈';
-};
-
-window.saveKeys = async function() {
-  // Lire les valeurs actuelles des champs
-  keys = keys.map((k, i) => {
-    const inp = document.getElementById('key-input-' + i);
-    return { ...k, value: inp ? inp.value.trim() : k.value };
-  }).filter(k => k.value);
-
-  if (keys.length === 0) { toast('Ajoutez au moins une clé', 'error'); return; }
-
-  try {
-    await saveToFirestore();
-    // Injecter dans l'app si elle est ouverte dans le même contexte
-    injectIntoApp();
-    updateBadge();
-    renderKeys();
-    addLog(`${keys.length} clé(s) sauvegardée(s) et appliquée(s)`, 'ok');
-    toast('✅ Clés sauvegardées et appliquées', 'success');
-  } catch (e) {
-    addLog('Erreur sauvegarde : ' + e.message, 'err');
-    toast('Erreur : ' + e.message, 'error');
-  }
-};
-
-window.clearAllKeys = function() {
-  if (!confirm('Supprimer toutes les clés ?')) return;
-  keys = [];
-  renderKeys();
-  updateBadge();
-  toast('Clés effacées', 'info');
-};
-
-function injectIntoApp() {
-  // Si CC.html est ouvert comme sous-fenêtre ou dans le même contexte que l'app
-  try {
-    const win = window.opener || window.parent;
-    if (win && win.setGroqKeysFromCC) {
-      win.setGroqKeysFromCC(keys.map(k => k.value), models);
-      addLog('Clés injectées dans l\'application en direct', 'ok');
-    }
-  } catch (e) { /* cross-origin, normal */ }
+function updateStats() {
+  const total   = keys.length;
+  const valid   = keys.filter(k => k.status === 'valid').length;
+  const invalid = keys.filter(k => k.status === 'invalid').length;
+  document.getElementById('stat-total').textContent   = total;
+  document.getElementById('stat-valid').textContent   = valid;
+  document.getElementById('stat-invalid').textContent = invalid;
+  document.getElementById('stat-sync').textContent    =
+    new Date().toLocaleTimeString('fr-FR');
 }
 
-window.importFromText = function() {
-  const box = document.getElementById('importBox');
-  box.style.display = box.style.display === 'none' ? '' : 'none';
-};
-
-window.doImport = function() {
-  const raw = document.getElementById('importText').value;
-  const lines = raw.split('\n').map(l => l.trim()).filter(l => l.startsWith('gsk_'));
-  if (!lines.length) { toast('Aucune clé valide (doit commencer par gsk_)', 'error'); return; }
-  lines.forEach(v => {
-    if (keys.length < 10 && !keys.find(k => k.value === v)) {
-      keys.push({ value: v, status: 'idle', requests: 0, lastUsed: null });
-    }
-  });
-  document.getElementById('importText').value = '';
-  document.getElementById('importBox').style.display = 'none';
-  renderKeys();
-  updateBadge();
-  toast(`${lines.length} clé(s) importée(s)`, 'success');
-};
-
-// ═══════════════════════════════════════
-// TEST DES CLÉS
-// ═══════════════════════════════════════
-window.testAllKeys = async function() {
-  if (keys.length === 0) { toast('Aucune clé à tester', 'error'); return; }
-  toast('Test en cours…', 'info');
-  addLog('Début du test de toutes les clés…', 'info');
-
-  for (let i = 0; i < keys.length; i++) {
-    const k = keys[i];
-    if (!k.value) continue;
-    try {
-      const r = await fetch('https://api.groq.com/openai/v1/models', {
-        headers: { Authorization: 'Bearer ' + k.value }
-      });
-      if (r.ok) {
-        keys[i].status = 'ok';
-        addLog(`Clé ${i+1} ✅ valide`, 'ok');
-      } else {
-        keys[i].status = 'error';
-        addLog(`Clé ${i+1} ❌ rejetée (${r.status})`, 'err');
-      }
-    } catch (e) {
-      keys[i].status = 'error';
-      addLog(`Clé ${i+1} ❌ erreur réseau`, 'err');
-    }
-    renderKeys();
-    await new Promise(r => setTimeout(r, 300));
-  }
-  toast('Tests terminés', 'success');
-};
-
-window.testKey = async function(i) {
-  const k = keys[i];
-  if (!k?.value) { toast('Clé vide', 'error'); return; }
-  addLog(`Test clé ${i+1}…`, 'info');
-  try {
-    const r = await fetch('https://api.groq.com/openai/v1/models', {
-      headers: { Authorization: 'Bearer ' + k.value }
-    });
-    keys[i].status = r.ok ? 'ok' : 'error';
-    addLog(`Clé ${i+1} → ${r.ok ? '✅ valide' : '❌ invalide (' + r.status + ')'}`, r.ok ? 'ok' : 'err');
-    toast(r.ok ? `✅ Clé ${i+1} valide` : `❌ Clé ${i+1} invalide`, r.ok ? 'success' : 'error');
-  } catch (e) {
-    keys[i].status = 'error';
-    addLog(`Clé ${i+1} ❌ erreur réseau`, 'err');
-    toast('Erreur réseau', 'error');
-  }
-  renderKeys();
-};
-
-// ═══════════════════════════════════════
-// MODÈLES
-// ═══════════════════════════════════════
-const DEFAULT_MODELS = [
-  'llama-3.3-70b-versatile',
-  'qwen/qwen3-32b',
-  'meta-llama/llama-4-scout-17b-16e-instruct',
-];
-
-window.saveModels = async function() {
-  const items = document.querySelectorAll('.model-name');
-  models = [...items].map(el => el.textContent.trim()).filter(Boolean);
-  try {
-    await setDoc(doc(db, 'server_config', 'models'), { list: models });
-    injectIntoApp();
-    addLog(`Modèles sauvegardés : ${models.join(', ')}`, 'ok');
-    toast('✅ Modèles sauvegardés', 'success');
-  } catch (e) {
-    toast('Erreur : ' + e.message, 'error');
-  }
-};
-
-window.resetModels = function() {
-  models = [...DEFAULT_MODELS];
-  renderModels();
-  toast('Modèles réinitialisés', 'info');
-};
-
-window.removeModel = function(i) {
-  models.splice(i, 1);
-  renderModels();
-};
-
-// ═══════════════════════════════════════
-// MONITOR
-// ═══════════════════════════════════════
-function startMonitor() {
-  renderMonitor();
-  monitorInterval = setInterval(() => {
-    loadTick = (loadTick + 1) % 60;
-    renderMonitor();
-    renderLoadChart();
-  }, 1000);
-}
-function stopMonitor() {
-  if (monitorInterval) { clearInterval(monitorInterval); monitorInterval = null; }
+function markDirty(isDirty) {
+  dirty = isDirty;
+  document.getElementById('save-bar').classList.toggle('visible', isDirty);
 }
 
-function getAppStatus() {
-  // Tenter de lire l'état depuis l'app principale
-  try {
-    const win = window.opener || window.parent;
-    if (win && win.getGroqKeysStatus) {
-      return win.getGroqKeysStatus();
-    }
-  } catch (e) {}
-  // Fallback : utiliser nos propres données
-  return keys.map((k, i) => ({
-    index: i,
-    key: k.value ? k.value.substring(0,8) + '…' + k.value.slice(-4) : '—',
-    busy: k.status === 'busy',
-  }));
-}
-
-function renderMonitor() {
-  const status = getAppStatus();
-  const busyCount = status.filter(s => s.busy).length;
-
-  document.getElementById('kpiBusy').textContent = busyCount;
-
-  const qEl = document.getElementById('monitorQueue');
-  qEl.textContent = '0'; // queue count from app if available
-  qEl.className = 'queue-count';
-
-  // Points d'occupation
-  const dotsEl = document.getElementById('monitorDots');
-  if (dotsEl) {
-    dotsEl.innerHTML = status.map((s, i) =>
-      `<div class="qdot ${s.busy ? 'busy' : 'active'}" title="Clé ${i+1}"></div>`
-    ).join('') || '<div style="color:var(--muted);font-size:11px">Aucune clé configurée</div>';
-  }
-
-  // Lignes de clés monitor
-  const mkEl = document.getElementById('monitorKeys');
-  if (mkEl) {
-    mkEl.innerHTML = status.map((s, i) => `
-      <div class="key-row ${s.busy ? 'busy' : ''}">
-        <div class="key-num">${i+1}</div>
-        <div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${s.key}</div>
-        <div class="key-status ${s.busy ? 'busy' : 'ok'}">
-          <div class="dot"></div>${s.busy ? 'Occupée' : 'Libre'}
-        </div>
-        <div class="key-counter">${keys[i]?.requests || 0} req.</div>
-        <div></div>
-      </div>
-    `).join('') || '<div style="color:var(--muted);font-size:12px;padding:12px 0">Aucune clé configurée</div>';
-  }
-}
-
-function renderLoadChart() {
-  const canvas = document.getElementById('loadChart');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.offsetWidth;
-  const H = canvas.height;
-  canvas.width = W;
-  ctx.clearRect(0, 0, W, H);
-
-  const max = Math.max(...loadHistory, 1);
-  const step = W / 60;
-
-  ctx.beginPath();
-  ctx.strokeStyle = '#d4a853';
-  ctx.lineWidth = 1.5;
-  loadHistory.forEach((v, i) => {
-    const x = i * step;
-    const y = H - (v / max) * (H - 10) - 4;
-    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-  });
-  ctx.stroke();
-
-  // Fill
-  ctx.lineTo(W, H); ctx.lineTo(0, H);
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(212,168,83,0.07)';
-  ctx.fill();
-}
-
-// ═══════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════
-function renderAll() {
-  renderKeys();
-  renderModels();
-  updateKPIs();
-  updateBadge();
-}
-
-function renderKeys() {
-  const list = document.getElementById('keysList');
-  if (!list) return;
+// ══════════════════════════════════════════
+// Render key list
+// ══════════════════════════════════════════
+function render() {
+  const list = document.getElementById('key-list');
 
   if (keys.length === 0) {
-    list.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">
-      Aucune clé configurée.<br><span style="font-size:11px">Cliquez "+ Ajouter une clé" pour commencer.</span>
-    </div>`;
+    list.innerHTML = `
+      <div style="padding:32px;text-align:center;color:var(--muted);font-size:13px">
+        Aucune clé configurée.<br>
+        <span style="font-size:11px">Cliquez sur "Ajouter une clé" ou collez plusieurs clés ci-dessous.</span>
+      </div>`;
+    updateStats();
     return;
   }
 
-  list.innerHTML = keys.map((k, i) => `
-    <div class="key-row ${k.status}" id="key-row-${i}">
-      <div class="key-num">${i+1}</div>
-      <div class="key-input-wrap">
-        <input id="key-input-${i}" class="key-input" type="password"
-          value="${escHtml(k.value)}" placeholder="gsk_…"
-          oninput="onKeyInput(${i}, this.value)"/>
-        <button class="key-toggle" id="key-toggle-${i}" onclick="toggleVisibility(${i})" title="Afficher/Masquer">👁</button>
-      </div>
-      <div class="key-status ${k.status}">
-        <div class="dot"></div>
-        ${statusLabel(k.status)}
-      </div>
-      <div class="key-counter">${k.requests} req · ${k.lastUsed ? 'il y a ' + elapsed(k.lastUsed) : '—'}</div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="testKey(${i})" title="Tester">⚡</button>
-        <button class="btn btn-danger btn-sm" onclick="removeKey(${i})" title="Supprimer">✕</button>
-      </div>
-    </div>
-  `).join('');
-  updateKPIs();
+  list.innerHTML = keys.map((k, i) => {
+    let statusHTML = '';
+    if (k.status === 'valid')   statusHTML = `<span class="dot dot-green"></span><span class="color-green">Valide</span>`;
+    else if (k.status === 'invalid') statusHTML = `<span class="dot dot-red"></span><span class="color-red">Invalide</span>`;
+    else if (k.status === 'testing') statusHTML = `<span class="dot dot-amber"></span><span class="color-amber">Test…</span>`;
+    else statusHTML = `<span class="dot" style="background:var(--muted)"></span><span style="color:var(--muted)">—</span>`;
+
+    const masked = k.value
+      ? k.value.substring(0, 8) + '•'.repeat(Math.min(32, k.value.length - 8)) + k.value.slice(-4)
+      : '';
+
+    return `
+    <div class="key-row" id="row-${i}">
+      <div class="key-num">${i + 1}</div>
+      <input class="key-input" id="key-${i}"
+             type="password"
+             value="${k.value || ''}"
+             placeholder="gsk_••••••••••••••••••••••••••••••••••••••••••••••••••••••••••"
+             oninput="onKeyInput(${i}, this.value)"
+             autocomplete="off" spellcheck="false">
+      <button class="btn-icon" onclick="toggleVisible(${i})" title="Afficher / Masquer">👁</button>
+      <div class="key-status">${statusHTML}</div>
+      <button class="btn-icon" onclick="testSingleKey(${i})" title="Tester cette clé">⚡</button>
+      <button class="btn-icon del" onclick="removeKey(${i})" title="Supprimer">✕</button>
+    </div>`;
+  }).join('');
+
+  document.getElementById('btn-add').disabled = keys.length >= 10;
+  updateStats();
 }
 
-window.onKeyInput = function(i, val) {
-  if (keys[i]) { keys[i].value = val; keys[i].status = 'idle'; }
+// ══════════════════════════════════════════
+// Key management
+// ══════════════════════════════════════════
+window.onKeyInput = (i, val) => {
+  keys[i].value  = val.trim();
+  keys[i].status = null;
+  markDirty(true);
 };
 
-function renderModels() {
-  const list = document.getElementById('modelList');
-  if (!list) return;
-  list.innerHTML = models.map((m, i) => `
-    <div class="model-row" draggable="true"
-      ondragstart="dragStart(event,${i})" ondragover="dragOver(event)" ondrop="dragDrop(event,${i})">
-      <span class="model-handle" title="Glisser pour réordonner">⠿</span>
-      <span class="model-name">${escHtml(m)}</span>
-      <span class="model-tag ${i===0?'fast':''}">${i===0?'Principal':'Fallback'}</span>
-      <button class="btn btn-danger btn-sm" onclick="removeModel(${i})" title="Retirer">✕</button>
-    </div>
-  `).join('');
-}
+window.toggleVisible = (i) => {
+  const inp = document.getElementById(`key-${i}`);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+};
 
-function updateKPIs() {
-  document.getElementById('kpiActive').textContent = keys.filter(k => k.value && k.status !== 'error').length;
-  document.getElementById('kpiBusy').textContent   = keys.filter(k => k.status === 'busy').length;
-  document.getElementById('kpiTotal').textContent  = totalHandled;
-}
-function updateBadge() {
-  document.getElementById('badgeKeys').textContent = keys.filter(k => k.value).length;
-}
+window.addKey = () => {
+  if (keys.length >= 10) { toast('Maximum 10 clés', 'error'); return; }
+  keys.push({ value: '', status: null });
+  render();
+  markDirty(true);
+  // Focus new input
+  setTimeout(() => {
+    const inp = document.getElementById(`key-${keys.length - 1}`);
+    if (inp) { inp.type = 'text'; inp.focus(); }
+  }, 50);
+};
 
-// ═══════════════════════════════════════
-// DRAG & DROP MODÈLES
-// ═══════════════════════════════════════
-let dragSrc = null;
-window.dragStart = (e, i) => { dragSrc = i; e.dataTransfer.effectAllowed = 'move'; };
-window.dragOver  = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
-window.dragDrop  = (e, i) => {
+window.removeKey = (i) => {
+  keys.splice(i, 1);
+  render();
+  markDirty(true);
+  log(`Clé #${i + 1} supprimée`, 'err');
+};
+
+window.clearAll = () => {
+  if (!confirm('Effacer toutes les clés ?')) return;
+  keys = [];
+  render();
+  markDirty(true);
+  log('Toutes les clés supprimées', 'err');
+};
+
+window.discardChanges = () => {
+  keys = savedKeys.map(k => ({ ...k }));
+  render();
+  markDirty(false);
+  log('Modifications annulées', 'info');
+};
+
+// ── Paste multiple keys ──
+window.handleBulkPaste = (text) => {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  let added = 0;
+  for (const line of lines) {
+    if (keys.length >= 10) break;
+    if (!keys.find(k => k.value === line)) {
+      keys.push({ value: line, status: null });
+      added++;
+    }
+  }
+  document.getElementById('bulk-input').value = '';
+  render();
+  markDirty(true);
+  if (added) { toast(`${added} clé(s) ajoutée(s)`, 'success'); log(`${added} clé(s) collée(s)`, 'ok'); }
+};
+
+window.handleDrop = (e) => {
   e.preventDefault();
-  if (dragSrc === null || dragSrc === i) return;
-  const moved = models.splice(dragSrc, 1)[0];
-  models.splice(i, 0, moved);
-  dragSrc = null;
-  renderModels();
+  document.getElementById('paste-zone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => handleBulkPaste(ev.target.result);
+  reader.readAsText(file);
 };
 
-// ═══════════════════════════════════════
-// LOGS
-// ═══════════════════════════════════════
-window.clearLogs = function() {
-  logs = [];
-  document.getElementById('logBox').innerHTML = '';
-  addLog('Logs effacés', 'info');
-};
-window.exportLogs = function() {
-  const text = logs.map(l => `[${l.time}] ${l.msg}`).join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
-  a.download = 'comeo-cc-logs.txt';
-  a.click();
-};
-
-// ═══════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════
-function escHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-function statusLabel(s) {
-  return { idle: 'Inactif', busy: 'Occupée', ok: 'Valide', error: 'Erreur' }[s] || 'Inconnu';
-}
-function elapsed(ts) {
-  const s = Math.round((Date.now() - ts) / 1000);
-  if (s < 60) return s + 's';
-  return Math.round(s/60) + 'min';
-}
-function setConnected(ok) {
-  const el = document.getElementById('connectionStatus');
-  const lb = document.getElementById('connLabel');
-  el.className = ok ? 'connected' : '';
-  lb.textContent = ok ? 'Firestore connecté' : 'Hors ligne';
+// ══════════════════════════════════════════
+// Test keys via Groq API
+// ══════════════════════════════════════════
+async function testKey(key) {
+  try {
+    const r = await fetch('https://api.groq.com/openai/v1/models', {
+      headers: { Authorization: `Bearer ${key}` }
+    });
+    return r.ok;
+  } catch { return false; }
 }
 
-// ═══════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════
-loadFromFirestore();
+window.testSingleKey = async (i) => {
+  const k = keys[i];
+  if (!k?.value) { toast('Clé vide', 'error'); return; }
+  k.status = 'testing';
+  render();
+  log(`Test clé #${i + 1}…`, 'info');
+  const ok = await testKey(k.value);
+  k.status = ok ? 'valid' : 'invalid';
+  render();
+  log(`Clé #${i + 1} → ${ok ? '✅ Valide' : '❌ Invalide'}`, ok ? 'ok' : 'err');
+  toast(`Clé #${i + 1} ${ok ? '✅ valide' : '❌ invalide'}`, ok ? 'success' : 'error');
+};
+
+window.testAllKeys = async () => {
+  const btn = document.getElementById('btn-test');
+  btn.disabled = true;
+  btn.textContent = '⏳ Test en cours…';
+  log('Test de toutes les clés…', 'info');
+
+  const valid = [], invalid = [];
+  await Promise.all(
+    keys.map(async (k, i) => {
+      if (!k.value) return;
+      k.status = 'testing';
+      render();
+      const ok = await testKey(k.value);
+      k.status = ok ? 'valid' : 'invalid';
+      (ok ? valid : invalid).push(i + 1);
+      render();
+    })
+  );
+
+  log(`Résultat : ${valid.length} valide(s) [${valid.join(', ')}] · ${invalid.length} invalide(s) [${invalid.join(', ')}]`,
+      invalid.length === 0 ? 'ok' : 'err');
+  toast(`${valid.length} valide(s), ${invalid.length} invalide(s)`,
+        invalid.length === 0 ? 'success' : 'error');
+  btn.disabled = false;
+  btn.textContent = '⚡ Tester toutes les clés';
+};
+
+// ══════════════════════════════════════════
+// Firestore save
+// ══════════════════════════════════════════
+window.saveKeys = async () => {
+  const nonEmpty = keys.filter(k => k.value.trim());
+  if (nonEmpty.length === 0) {
+    if (!confirm('Sauvegarder avec 0 clé ? Cela désactivera l\'IA.')) return;
+  }
+
+  try {
+    const payload = {
+      keys: nonEmpty.map(k => ({ value: k.value.trim() })),
+      updatedAt: new Date().toISOString(),
+      updatedBy: auth.currentUser?.uid || 'admin-panel',
+    };
+    await setDoc(doc(db, 'server_config', 'groq_keys'), payload);
+    savedKeys = keys.map(k => ({ ...k }));
+    markDirty(false);
+    toast(`✅ ${nonEmpty.length} clé(s) sauvegardée(s)`, 'success');
+    log(`Sauvegarde : ${nonEmpty.length} clé(s) → Firestore`, 'ok');
+  } catch (err) {
+    toast('❌ Erreur : ' + err.message, 'error', 5000);
+    log('Erreur sauvegarde : ' + err.message, 'err');
+  }
+};
+
+// ══════════════════════════════════════════
+// Firestore realtime listener
+// ══════════════════════════════════════════
+function startListener() {
+  if (unsubscribe) unsubscribe();
+
+  unsubscribe = onSnapshot(
+    doc(db, 'server_config', 'groq_keys'),
+    (snap) => {
+      setSyncStatus('live');
+      if (!dirty) {
+        // Seulement mettre à jour si pas de modifications locales
+        if (snap.exists()) {
+          const raw = snap.data().keys || [];
+          keys      = raw.map(k => ({ value: k.value || '', status: null }));
+          savedKeys = keys.map(k => ({ ...k }));
+        } else {
+          keys = []; savedKeys = [];
+        }
+        render();
+        log(`Synchronisation Firestore → ${keys.length} clé(s) chargée(s)`, 'ok');
+      } else {
+        log('Firestore mis à jour (modifications locales en attente)', 'info');
+      }
+    },
+    (err) => {
+      setSyncStatus('error');
+      log('Erreur listener : ' + err.message, 'err');
+      toast('Erreur de connexion Firestore', 'error');
+    }
+  );
+}
+
+// ══════════════════════════════════════════
+// Auth — connexion automatique admin
+// ══════════════════════════════════════════
+onAuthStateChanged(auth, (user) => {
+  if (user && user.uid === ADMIN_UID) {
+    log(`Connecté en tant qu'admin (${user.email || user.uid})`, 'ok');
+    setSyncStatus('live');
+    startListener();
+  } else if (user) {
+    setSyncStatus('error');
+    log('Accès refusé — UID non admin', 'err');
+    toast('Accès refusé : compte non admin', 'error');
+  } else {
+    setSyncStatus('wait');
+    log('Non connecté — en attente d\'authentification…', 'info');
+    // Essai de connexion anonyme pour les admins qui utilisent email/password
+    // L'admin doit être connecté dans l'app principale (COMEO) pour que ça fonctionne
+    toast('Connectez-vous à COMEO d\'abord, puis revenez ici.', 'info', 6000);
+  }
+});
+
+// ── Keyboard shortcut Ctrl+S ──
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    if (dirty) saveKeys();
+  }
+});
 </script>
+
 </body>
 </html>
