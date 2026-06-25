@@ -580,55 +580,43 @@ window.handleDrop = (e) => {
 };
 
 // ══════════════════════════════════════════
-// Test keys via Groq API
+// Validation format clé (sans appel réseau)
+// Les clés Groq commencent par "gsk_" et font ~56 caractères
 // ══════════════════════════════════════════
-async function testKey(key) {
-  try {
-    const r = await fetch('https://api.groq.com/openai/v1/models', {
-      headers: { Authorization: `Bearer ${key}` }
-    });
-    return r.ok;
-  } catch { return false; }
+function validateKeyFormat(key) {
+  if (!key || typeof key !== 'string') return false;
+  const trimmed = key.trim();
+  return trimmed.startsWith('gsk_') && trimmed.length >= 40;
 }
 
-window.testSingleKey = async (i) => {
+window.testSingleKey = (i) => {
   const k = keys[i];
   if (!k?.value) { toast('Clé vide', 'error'); return; }
-  k.status = 'testing';
-  render();
-  log(`Test clé #${i + 1}…`, 'info');
-  const ok = await testKey(k.value);
+  const ok = validateKeyFormat(k.value);
   k.status = ok ? 'valid' : 'invalid';
   render();
-  log(`Clé #${i + 1} → ${ok ? '✅ Valide' : '❌ Invalide'}`, ok ? 'ok' : 'err');
-  toast(`Clé #${i + 1} ${ok ? '✅ valide' : '❌ invalide'}`, ok ? 'success' : 'error');
+  log(`Clé #${i + 1} → format ${ok ? '✅ correct (gsk_…)' : '❌ incorrect'}`, ok ? 'ok' : 'err');
+  toast(`Clé #${i + 1} ${ok ? '✅ format valide' : '❌ format invalide'}`, ok ? 'success' : 'error');
 };
 
-window.testAllKeys = async () => {
+window.testAllKeys = () => {
   const btn = document.getElementById('btn-test');
   btn.disabled = true;
-  btn.textContent = '⏳ Test en cours…';
-  log('Test de toutes les clés…', 'info');
 
   const valid = [], invalid = [];
-  await Promise.all(
-    keys.map(async (k, i) => {
-      if (!k.value) return;
-      k.status = 'testing';
-      render();
-      const ok = await testKey(k.value);
-      k.status = ok ? 'valid' : 'invalid';
-      (ok ? valid : invalid).push(i + 1);
-      render();
-    })
-  );
+  keys.forEach((k, i) => {
+    if (!k.value) return;
+    const ok = validateKeyFormat(k.value);
+    k.status = ok ? 'valid' : 'invalid';
+    (ok ? valid : invalid).push(i + 1);
+  });
+  render();
 
-  log(`Résultat : ${valid.length} valide(s) [${valid.join(', ')}] · ${invalid.length} invalide(s) [${invalid.join(', ')}]`,
+  log(`Format : ${valid.length} valide(s) [${valid.join(', ')}] · ${invalid.length} invalide(s) [${invalid.join(', ')}]`,
       invalid.length === 0 ? 'ok' : 'err');
   toast(`${valid.length} valide(s), ${invalid.length} invalide(s)`,
         invalid.length === 0 ? 'success' : 'error');
   btn.disabled = false;
-  btn.textContent = '⚡ Tester toutes les clés';
 };
 
 // ══════════════════════════════════════════
